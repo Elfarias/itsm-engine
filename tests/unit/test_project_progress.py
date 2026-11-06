@@ -8,6 +8,10 @@ VERIFIED_FEATURES = {
     "ticket-triage": "Triagem determinística",
     "ticket-triage-api": "API local de triagem determinística",
 }
+IN_PROGRESS_FEATURE = (
+    "llm-ticket-interpretation",
+    "Interpretação de descrições em texto livre por LLM",
+)
 
 
 def _dashboard_rows(project_text: str) -> list[str]:
@@ -46,8 +50,8 @@ def test_dashboard_lists_unprioritized_roadmap() -> None:
         if row.startswith("|") and "Planejada, sem prioridade" in row
     ]
 
-    assert len(planned_rows) == 8
-    assert any("LLM" in row for row in planned_rows)
+    assert len(planned_rows) == 7
+    assert not any("Interpretação" in row for row in planned_rows)
     assert any("KEDB" in row for row in planned_rows)
     assert any("autenticação e autorização" in row for row in planned_rows)
     assert any("complementação de chamados" in row for row in planned_rows)
@@ -55,6 +59,32 @@ def test_dashboard_lists_unprioritized_roadmap() -> None:
     assert any("Interface gráfica" in row for row in planned_rows)
     assert any("Kubernetes" in row for row in planned_rows)
     assert any("procedimentos de correção" in row for row in planned_rows)
+
+
+def test_dashboard_lists_in_progress_interpretation_delivery() -> None:
+    project_text = PROJECT_DOCUMENT.read_text(encoding="utf-8")
+    feature, name = IN_PROGRESS_FEATURE
+    feature_rows = [
+        row
+        for row in _dashboard_rows(project_text)
+        if f".specs/features/{feature}/spec.md" in row
+    ]
+
+    assert len(feature_rows) == 1
+    row = feature_rows[0]
+    assert name in row
+    assert "Em andamento" in row
+    assert "aguardando verificação independente" in row
+    assert f".specs/features/{feature}/tasks.md" in row
+    assert f".specs/features/{feature}/verification.md" in row
+    active_status = next(
+        line
+        for line in project_text.splitlines()
+        if line.startswith("**Em andamento:**")
+    )
+    assert name.casefold() in active_status.casefold()
+    assert (PROJECT_ROOT / ".specs" / "features" / feature / "spec.md").is_file()
+    assert (PROJECT_ROOT / ".specs" / "features" / feature / "tasks.md").is_file()
 
 
 def test_dashboard_requires_same_commit_updates() -> None:

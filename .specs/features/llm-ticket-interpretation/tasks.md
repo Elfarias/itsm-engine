@@ -223,14 +223,16 @@ T4 → T7
 
 **Done when**:
 
-- [ ] The progress table links this feature's Spec, task checklist, and verification report and marks it as in progress until the independent verifier passes.
-- [ ] The roadmap lists LLM interpretation as active, not as an unprioritized future item.
-- [ ] Tests verify the in-progress entry and linked evidence paths.
-- [ ] Gate check passes: `pytest -v`.
+- [x] The progress table links this feature's Spec, task checklist, and verification report and marks it as in progress until the independent verifier passes.
+- [x] The roadmap lists LLM interpretation as active, not as an unprioritized future item.
+- [x] Tests verify the in-progress entry and linked evidence paths.
+- [x] Gate check passes: `pytest -v`.
 
 **Tests**: unit
 **Gate**: build
 **Commit**: `docs(progress): track LLM interpretation delivery`
+**Status**: Complete
+**Gate result**: `pytest -v` - 79 passed, 1 pre-existing Starlette deprecation warning.
 
 ## Checks
 

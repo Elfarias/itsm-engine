@@ -2,26 +2,26 @@
 
 **Nome do projeto:** ITSM Agent
 **Versão do documento:** 1.0
-**Status:** Acompanhamento centralizado; fatia atual implementada localmente
+**Status:** Acompanhamento centralizado; interpretação por LLM em implantação
 **Idioma:** Português (Brasil)
 
 ## 1. Visão geral
 
 O ITSM Agent é uma aplicação de triagem inteligente de incidentes de TI.
-A arquitetura-alvo combina interpretação de texto, dados operacionais e
-regras determinísticas. A fatia implementada recebe chamados pela API,
-mantém catálogos versionados e classifica fatos estruturados por um
-serviço Python acessível pela rota local
-`POST /tickets/{ticket_id}/triage`.
+A arquitetura combina interpretação de texto, dados operacionais e
+regras determinísticas. A aplicação recebe chamados pela API, mantém
+catálogos versionados, classifica fatos estruturados e oferece uma rota
+local que propõe uma interpretação da descrição salva do chamado. A
+proposta não altera o chamado; a triagem determinística permanece uma
+operação explícita e separada.
 
-LLM, KEDB e integração ITSM externa são evoluções futuras. A
-classificação atual não usa LLM. A rota não requer autenticação e só fica
-disponível no servidor ligado a `127.0.0.1`; acesso por rede pública ou
-remota está fora do escopo.
+KEDB e integração ITSM externa permanecem no roadmap. A API local não
+requer autenticação e só fica disponível no servidor ligado a
+`127.0.0.1`; acesso por rede pública ou remota está fora do escopo.
 
-**Princípio central:** quando a interpretação por IA for adicionada, a
-aplicação continuará validando os fatos e executando as regras de
-negócio e as operações autorizadas.
+**Princípio central:** o LLM propõe fatos para revisão; a aplicação
+continua validando os dados e executando regras de negócio e operações
+autorizadas.
 
 ## 2. Problema
 
@@ -54,8 +54,9 @@ IA.
 | API básica de chamados | Concluída e verificada | Criar e consultar chamados com persistência PostgreSQL e auditoria. | [Spec](.specs/features/ticket-api/spec.md) | [Tarefas](.specs/features/ticket-api/tasks.md) | [Verificação](.specs/features/ticket-api/verification.md) |
 | Triagem determinística | Concluída e verificada | Catálogos versionados, regras de prioridade e roteamento, controle de revisão, estados e auditoria transacional. | [Spec](.specs/features/ticket-triage/spec.md) | [Tarefas](.specs/features/ticket-triage/tasks.md) | [Verificação](.specs/features/ticket-triage/verification.md) |
 | API local de triagem determinística | Concluída e verificada | Avaliar chamados existentes por fatos estruturados na rota local. | [Spec](.specs/features/ticket-triage-api/spec.md) | [Tarefas](.specs/features/ticket-triage-api/tasks.md) | [Verificação](.specs/features/ticket-triage-api/verification.md) |
+| Interpretação de descrições em texto livre por LLM | Em andamento; aguardando verificação independente | OpenRouter propõe fatos estruturados a partir da descrição salva, sem alterar o chamado. | [Spec](.specs/features/llm-ticket-interpretation/spec.md) | [Tarefas](.specs/features/llm-ticket-interpretation/tasks.md) | [Verificação](.specs/features/llm-ticket-interpretation/verification.md) |
 
-**Em andamento:** nenhuma entrega registrada.
+**Em andamento:** interpretação de descrições em texto livre por LLM, aguardando verificação independente.
 
 **Regra de atualização:** ao concluir cada entrega ou alterar seu status, atualize esta tabela e o backlog no `PROJECT.md` no mesmo commit da entrega.
 
@@ -63,7 +64,6 @@ IA.
 
 | Frente futura | Status |
 | --- | --- |
-| Interpretação de descrições em texto livre por LLM e extração estruturada | Planejada, sem prioridade |
 | Consultas à KEDB | Planejada, sem prioridade |
 | Acesso remoto à API com autenticação e autorização | Planejada, sem prioridade |
 | Orquestrador e canal remoto de complementação de chamados | Planejada, sem prioridade |
@@ -116,8 +116,9 @@ um sistema ITSM externo. Esses fluxos ficam para etapas futuras.
 
 ## 7. Requisitos funcionais
 
-Os requisitos descrevem o produto-alvo. LLM, KEDB e integração ITSM
-permanecem planejados para etapas futuras, conforme o escopo acima.
+Os requisitos descrevem o produto-alvo. Consultas à KEDB e integração ITSM permanecem planejadas para etapas
+futuras, conforme o escopo acima. A interpretação por LLM está em
+implantação e retorna uma proposta revisável, sem executar a triagem.
 
   -----------------------------------------------------------------------
   ID                                  Requisito
