@@ -163,14 +163,16 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] The migration creates the ticket and audit-event schema with the specified defaults and constraints.
-- [ ] The runtime role can insert and read audit events but cannot update or delete them.
-- [ ] Two PostgreSQL integration tests verify schema constraints and runtime-role permissions.
-- [ ] Test count: 2 schema and permission integration tests pass.
+- [x] The migration creates the ticket and audit-event schema with the specified defaults and constraints.
+- [x] The runtime role can insert and read audit events but cannot update or delete them.
+- [x] Two PostgreSQL integration tests verify schema constraints and runtime-role permissions.
+- [x] Test count: 2 schema and permission integration tests pass.
 
 **Tests**: integration
 **Gate**: Full
 **Commit**: `feat(db): add ticket and append-only audit schema`
+**Status**: Complete
+**Gate result**: `pytest -v` - 8 passed.
 
 ---
 

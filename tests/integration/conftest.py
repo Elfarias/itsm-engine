@@ -9,6 +9,7 @@ import psycopg
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+MIGRATION_PATH = PROJECT_ROOT / "migrations" / "001_tickets_and_audit.sql"
 
 
 @pytest.fixture(scope="session")
@@ -54,3 +55,14 @@ def database_roles() -> Iterator[tuple[str, str]]:
             check=True,
             timeout=60,
         )
+
+
+@pytest.fixture(scope="session")
+def migrated_database_roles(
+    database_roles: tuple[str, str],
+) -> tuple[str, str]:
+    owner_connection, runtime_connection = database_roles
+    migration = MIGRATION_PATH.read_text(encoding="utf-8")
+    with psycopg.connect(owner_connection) as connection:
+        connection.execute(migration)
+    return owner_connection, runtime_connection
