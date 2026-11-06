@@ -323,7 +323,7 @@ Proof: run tests | tests/integration/test_triage_service.py::test_em_triagem_ret
 The feature's live state, written as it happens - a compaction gives no warning.
 
 **Settled mid-build**: none; T1-T8 complete.
-**Dispatched**: Verifier (general-purpose sub-agent) returned FAIL for HEAD `8c05443`, diff `2388139^..8c05443`; findings addressed in the verification-fix commit. No screen captures apply.
+**Dispatched**: Independent Verifier returned FAIL for HEAD `8c05443`, diff `2388139^..8c05443`; all findings were addressed in `eba98c1`. Round-2 proofs passed at `eba98c1` (16 checks, 0 failures; 45 tests). No second Verifier is dispatched per protocol; no screen captures apply.
 **Walked**: not yet; no user-facing screen or public classification API is in scope.
 
 ---
