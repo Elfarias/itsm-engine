@@ -230,13 +230,15 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 
 **Done when**:
 
-- [ ] The matrix is no longer described as awaiting business validation.
-- [ ] The project scope distinguishes this internal deterministic service from later LLM and public API work.
-- [ ] Documentation matches the approved Spec and implementation; no test is required for this documentation-only task.
+- [x] The matrix is no longer described as awaiting business validation.
+- [x] The project scope distinguishes this internal deterministic service from later LLM and public API work.
+- [x] Documentation matches the approved Spec and implementation; no test is required for this documentation-only task.
 
 **Tests**: none
 **Gate**: build
 **Commit**: `docs(project): record approved triage rules`
+**Gate result**: `pytest -v` - 43 passed, 1 pre-existing deprecation warning.
+**Status**: Complete
 
 ---
 
@@ -318,7 +320,7 @@ Proof: run tests | tests/integration/test_triage_service.py::test_em_triagem_ret
 
 The feature's live state, written as it happens - a compaction gives no warning.
 
-**Settled mid-build**: none; T1-T6 complete, next is T7.
+**Settled mid-build**: none; T1-T7 complete, next is T8.
 **Dispatched**: none; 8 tasks fit within one inline batch.
 **Walked**: not yet; no user-facing screen or public classification API is in scope.
 

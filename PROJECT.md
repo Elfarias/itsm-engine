@@ -2,25 +2,23 @@
 
 **Nome do projeto:** ITSM Agent
 **Versão do documento:** 1.0
-**Status:** Baseline de projeto — sujeito à validação durante a
-implementação
+**Status:** Baseline atualizada para a fatia de triagem determinística
 **Idioma:** Português (Brasil)
 
 ## 1. Visão geral
 
 O ITSM Agent é uma aplicação de triagem inteligente de incidentes de TI.
-A solução recebe chamados, utiliza um modelo de linguagem (LLM) para
-interpretar descrições em texto livre e extrair informações
-estruturadas, consulta dados operacionais e aplica regras
-determinísticas para classificar e direcionar os chamados.
+A arquitetura-alvo combina interpretação de texto, dados operacionais e
+regras determinísticas. A fatia implementada recebe chamados pela API,
+mantém catálogos versionados e classifica fatos estruturados por um
+serviço Python interno.
 
-O projeto combina inteligência artificial com controles tradicionais de
-engenharia de software. O LLM não decide sozinho a prioridade, não
-altera diretamente o banco de dados e não possui liberdade para executar
-operações arbitrárias.
+LLM, KEDB e integração ITSM externa são evoluções futuras. A
+classificação atual não usa LLM e não possui endpoint público.
 
-**Princípio central:** a IA interpreta; a aplicação valida, aplica as
-regras de negócio e executa as operações autorizadas.
+**Princípio central:** quando a interpretação por IA for adicionada, a
+aplicação continuará validando os fatos e executando as regras de
+negócio e as operações autorizadas.
 
 ## 2. Problema
 
@@ -44,38 +42,30 @@ IA.
 - Registrar eventos relevantes para auditoria.
 - Testar comportamento sob falhas e entradas maliciosas.
 
-## 4. Escopo da primeira versão
+## 4. Escopo do projeto
 
-### Incluído
+### Fatia implementada
 
-1. API FastAPI para criação, consulta e atualização controlada de
-    chamados.
+1. API FastAPI para criar e consultar chamados.
 2. PostgreSQL como persistência relacional.
-3. Dados simulados de serviços, ativos, equipes e conhecimento
-    operacional.
-4. Integração com um LLM por API externa.
-5. Extração estruturada validada com Pydantic.
-6. Orquestrador Python com fluxo controlado.
-7. Motor determinístico de prioridade e roteamento.
-8. Máquina de estados centralizada.
-9. Retry limitado, timeout, backoff e idempotência.
-10. Auditoria em tabela separada com política append-only para a
-    aplicação.
-11. Injeção configurável de falhas para testes.
-12. Execução local com Docker Compose.
+3. Catálogos sintéticos e versionados de serviços, ativos e equipes, sem
+   CRUD administrativo.
+4. Serviço interno de regras determinísticas para prioridade e
+   roteamento por serviço.
+5. Persistência de snapshots completos, controle de revisão, estados de
+   triagem e auditoria transacional append-only.
+6. Execução local e testes de integração com Docker Compose.
 
-### Fora do escopo inicial
+### Evoluções futuras
 
-- Plataforma de microsserviços.
-- Kubernetes.
-- Kafka, RabbitMQ ou outro broker de mensagens.
-- Redis.
-- PGVector ou outro banco vetorial.
-- Agente com autonomia irrestrita ou planejamento aberto.
-- Execução automática de procedimentos de correção em infraestrutura.
-- Integração com uma ferramenta ITSM comercial real.
+- Interpretação de descrições em texto livre por LLM e extração estruturada.
+- Consultas à KEDB.
+- Orquestrador e canal público de complementação ou classificação.
+- Integração ITSM externa com retry, timeout e idempotência remota.
 - Interface gráfica completa para operadores.
-- Alta disponibilidade multi-região ou arquitetura de missão crítica.
+- Plataforma de microsserviços, Kubernetes, broker, Redis, PGVector ou
+  alta disponibilidade multi-região.
+- Execução automática de procedimentos de correção em infraestrutura.
 
 Esses itens poderão ser reconsiderados somente quando houver requisito
 concreto que os justifique.
@@ -84,34 +74,42 @@ concreto que os justifique.
 
 - **Solicitante:** registra o incidente e pode fornecer informações
     complementares.
-- **Agente de triagem:** componente lógico que coordena interpretação
-    e consultas.
+- **Agente de triagem:** componente lógico que futuramente poderá
+    coordenar interpretação e consultas.
 - **Analista de suporte:** recebe chamados classificados ou pendentes
     de análise manual.
 - **Equipe técnica:** grupo responsável pelo serviço ou componente
     afetado.
-- **Administrador:** mantém dados de referência e configurações do
-    ambiente.
+- **Administrador:** mantém configurações do ambiente; publicação de
+    catálogos ocorrerá por versões controladas, sem CRUD administrativo
+    nesta fatia.
 
-## 6. Fluxo funcional esperado
+## 6. Fluxo da fatia implementada
 
-1. A API recebe um chamado e valida o contrato de entrada.
-2. O chamado é persistido no estado `NOVO`.
-3. O orquestrador inicia a triagem e registra a transição para
-    `EM_TRIAGEM`.
-4. O LLM interpreta a descrição e retorna dados estruturados.
-5. A aplicação valida os dados extraídos e consulta CMDB/KEDB.
-6. Se faltarem informações essenciais, o chamado passa para
-    `PENDENTE_INFORMACAO`.
-7. Com dados suficientes, o motor de regras calcula impacto, urgência e
-    prioridade.
-8. A aplicação determina a equipe por mapeamento configurado.
-9. A integração atualiza o chamado usando chave de idempotência
-    estável.
-10. O resultado e as transições são registrados em auditoria.
-11. O chamado passa para `CLASSIFICADO` quando a operação for concluída.
+1. A API recebe um chamado, valida o contrato e persiste o estado `NOVO`.
+2. Um chamador interno fornece um snapshot de fatos estruturados e a
+   revisão esperada ao serviço de triagem.
+3. O serviço bloqueia o chamado, verifica estado e revisão e carrega a
+   versão ativa do catálogo.
+4. As regras validam referências e consistência do ativo, calculam a
+   prioridade pela matriz aprovada e obtêm a equipe pelo mapeamento do
+   serviço.
+5. O serviço grava snapshot, resultado, estado e auditoria na mesma
+   transação.
+6. Dados completos deixam o chamado em `EM_TRIAGEM`. Fatos ausentes ou
+   conflitantes deixam-no em `PENDENTE_INFORMACAO`, sem prioridade ou
+   equipe.
+7. Uma avaliação pendente substitui o snapshot completo. Um retry
+   idêntico não duplica efeitos; revisões concorrentes desatualizadas
+   geram conflito explícito.
+
+Esta fatia não extrai fatos do texto do chamado nem envia atualizações a
+um sistema ITSM externo. Esses fluxos ficam para etapas futuras.
 
 ## 7. Requisitos funcionais
+
+Os requisitos descrevem o produto-alvo. LLM, KEDB e integração ITSM
+permanecem planejados para etapas futuras, conforme o escopo acima.
 
   -----------------------------------------------------------------------
   ID                                  Requisito
@@ -135,11 +133,11 @@ concreto que os justifique.
                                       quando dados essenciais estiverem
                                       ausentes.
 
-  RF-07                               Calcular prioridade por matriz
-                                      configurável de impacto e urgência.
+  RF-07                               Calcular prioridade pela matriz
+                                      aprovada de impacto e urgência.
 
   RF-08                               Determinar equipe por mapeamento
-                                      controlado de serviço para equipe.
+                                      versionado de serviço para equipe.
 
   RF-09                               Validar transições da máquina de
                                       estados.
@@ -178,48 +176,41 @@ A prioridade será calculada pela aplicação a partir de impacto e
 urgência. A criticidade e as dependências cadastradas no CMDB fornecem
 contexto, mas não substituem esses critérios.
 
-Matriz inicial ilustrativa:
+A matriz aprovada para esta fatia é:
 
-  Impacto  Urgência     Alta   Média   Baixa
-  ------------------- ------ ------- -------
-  Alto                    P1      P2      P2
-  Médio                   P2      P3      P3
-  Baixo                   P3      P4      P4
+| Impacto | Alta | Média | Baixa |
+| --- | --- | --- | --- |
+| Alto | P1 | P2 | P2 |
+| Médio | P2 | P3 | P3 |
+| Baixo | P3 | P4 | P4 |
 
-A matriz deverá ser validada como regra de negócio antes de ser
-considerada definitiva. A origem e a validação dos valores de impacto e
-urgência também deverão ser definidas.
+O serviço valida impacto e urgência por valores fechados. A origem dos
+fatos e sua extração de texto livre serão definidas para uma etapa futura.
 
 ### 9.2 Roteamento
 
-O roteamento será determinado por uma configuração controlada que
-relaciona `service_id` a `target_team`. Valores sugeridos pelo LLM não
-serão aceitos como destino final sem validação.
+O roteamento usa o mapeamento versionado `service_id` para `target_team`
+do catálogo ativo. A equipe não é escolhida pelo chamador.
 
 ### 9.3 Dados insuficientes
 
-Quando não houver evidência suficiente para determinar serviço, impacto
-ou urgência, o sistema não deverá inventar dados. O chamado deverá
-passar para `PENDENTE_INFORMACAO` ou para revisão humana, conforme a
-regra definida.
+Quando faltarem fatos obrigatórios, quando o serviço não tiver equipe
+mapeada ou quando o ativo não corresponder ao serviço, o sistema persiste
+os fatos válidos e deixa o chamado `PENDENTE_INFORMACAO`, sem prioridade
+ou equipe. Referências desconhecidas são rejeitadas sem alterar o
+chamado.
 
 ## 10. Critérios de aceite
 
-A primeira versão será considerada funcional quando demonstrar:
+A fatia determinística é funcional quando demonstra:
 
 - Criação e consulta de chamados.
-- Extração estruturada pelo LLM e validação da resposta.
-- Consulta ao CMDB e à KEDB.
-- Cálculo de prioridade sem decisão autônoma do LLM.
-- Roteamento validado pela aplicação.
-- Transições válidas e rejeição de transições inválidas.
-- Reentrada de chamado pendente após informação complementar.
-- Reprocessamento controlado de erro de integração.
-- Repetição da mesma operação com a mesma chave sem duplicação.
-- Auditoria dos eventos relevantes.
-- Testes para timeout, HTTP 500, resposta perdida após commit,
-    concorrência e prompt injection.
-- Execução local por Docker Compose.
+- Catálogo versionado com relações válidas entre serviços, ativos e
+  equipes.
+- Matriz de prioridade aprovada e roteamento pelo catálogo.
+- Persistência completa de avaliações, estados pendentes e reavaliações.
+- Retry idempotente, conflito de revisão e auditoria transacional.
+- Execução local por Docker Compose e testes automatizados.
 
 ## 11. Premissas e decisões pendentes
 
@@ -228,7 +219,6 @@ implementação:
 
 - Provedor, modelo e política de uso do LLM.
 - Critérios objetivos para classificar impacto e urgência.
-- Conteúdo e regras definitivas da matriz de prioridade.
 - Contrato da API simulada e formato dos erros.
 - Estratégia de autenticação entre componentes, caso sejam expostos
     além do ambiente local.

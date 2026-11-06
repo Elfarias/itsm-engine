@@ -2,7 +2,7 @@
 
 **Gathered:** 2026-11-06
 **Spec:** `.specs/features/ticket-triage/spec.md`
-**Status:** T1-T6 complete; ready to execute T7: project requirements baseline
+**Status:** T1-T7 complete; ready to execute T8: project README
 
 ---
 
