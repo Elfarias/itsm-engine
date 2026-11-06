@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MIGRATION_PATH = PROJECT_ROOT / "migrations" / "001_tickets_and_audit.sql"
+MIGRATION_PATHS = sorted((PROJECT_ROOT / "migrations").glob("*.sql"))
 
 
 @pytest.fixture(scope="session")
@@ -65,9 +65,10 @@ def migrated_database_roles(
     database_roles: tuple[str, str],
 ) -> tuple[str, str]:
     owner_connection, runtime_connection = database_roles
-    migration = MIGRATION_PATH.read_text(encoding="utf-8")
     with psycopg.connect(owner_connection) as connection:
-        connection.execute(migration)
+        for migration_path in MIGRATION_PATHS:
+            migration = migration_path.read_text(encoding="utf-8")
+            connection.execute(migration)
     return owner_connection, runtime_connection
 
 
