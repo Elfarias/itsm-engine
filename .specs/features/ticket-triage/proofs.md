@@ -1,6 +1,6 @@
 # ticket-triage proofs
 
-**HEAD**: eba98c1
+**HEAD**: b498b59
 **Tree**: clean
 **Shell**: C:/Program Files/Git\bin\bash.exe
 **Result**: 16 pass, 0 fail
@@ -43,5 +43,5 @@ tests/unit/test_triage_schemas.py::test_triage_facts_reject_invalid_values_and_c
     from starlette.testclient import TestClient as TestClient  # noqa
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================= 45 passed, 1 warning in 20.54s ========================
+======================= 45 passed, 1 warning in 17.56s ========================
 ```

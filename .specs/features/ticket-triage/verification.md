@@ -1,7 +1,7 @@
 # ticket-triage verification
 
 **Verdict**: PASS
-**Proofs**: `proofs.md` at `eba98c11eda6eb56dc9c3a95acbeb24037b0ae53`
+**Proofs**: `proofs.md` at `b498b59`
 **Verifier**: independent sub-agent (author != verifier)
 
 ## Checks
