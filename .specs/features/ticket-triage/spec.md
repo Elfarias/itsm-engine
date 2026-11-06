@@ -89,20 +89,20 @@ Chamados persistidos ainda não podem ser classificados de forma controlada porq
 | --- | --- | --- | --- |
 | TRI-01 | P1: Avaliar e classificar ticket | Tasks | Verified |
 | TRI-02 | P1: Avaliar e classificar ticket | Tasks | Verified |
-| TRI-03 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-04 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-05 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-06 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-07 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-08 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-09 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-10 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-11 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-12 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-13 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-14 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-15 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
-| TRI-16 | P1: Avaliar e classificar ticket | Tasks | In Tasks |
+| TRI-03 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-04 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-05 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-06 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-07 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-08 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-09 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-10 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-11 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-12 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-13 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-14 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-15 | P1: Avaliar e classificar ticket | Tasks | Verified |
+| TRI-16 | P1: Avaliar e classificar ticket | Tasks | Verified |
 
 **Coverage:** 16 total, 16 mapped to tasks, 0 unmapped.
 

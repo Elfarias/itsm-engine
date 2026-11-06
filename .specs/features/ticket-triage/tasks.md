@@ -164,6 +164,7 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 **Tests**: integration
 **Gate**: full
 **Commit**: `feat(triage): persist evaluation transactionally`
+**Commit hash**: `99aa944`
 **Gate result**: `pytest -v` - 34 passed, 1 pre-existing deprecation warning.
 **Status**: Complete
 
@@ -179,18 +180,20 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 
 **Done when**:
 
-- [ ] Complete evaluations persist priority and mapped team and leave the ticket in `EM_TRIAGEM`; incomplete or conflicting facts replace the full snapshot and leave the ticket pending without priority or team.
-- [ ] Pending retries with identical facts and the same active catalog version are idempotent; a new pending evaluation uses the active version.
-- [ ] Different facts after transition to `EM_TRIAGEM` are rejected; an identical retry returns the stored result and catalog version even when a newer catalog is active.
-- [ ] Invalid references and enum values leave the ticket unchanged; invalid ticket states are rejected.
-- [ ] Concurrent different snapshots based on one pending revision result in at most one accepted update and an explicit conflict for the stale update.
-- [ ] Integration tests cover complete and pending outcomes, full-snapshot replacement, retries, invalid input, state guards and concurrent updates.
-- [ ] Test count: 9 triage-service integration tests pass.
-- [ ] Gate check passes: `pytest -v`.
+- [x] Complete evaluations persist priority and mapped team and leave the ticket in `EM_TRIAGEM`; incomplete or conflicting facts replace the full snapshot and leave the ticket pending without priority or team.
+- [x] Pending retries with identical facts and the same active catalog version are idempotent; a new pending evaluation uses the active version.
+- [x] Different facts after transition to `EM_TRIAGEM` are rejected; an identical retry returns the stored result and catalog version even when a newer catalog is active.
+- [x] Invalid references and enum values leave the ticket unchanged; invalid ticket states are rejected.
+- [x] Concurrent different snapshots based on one pending revision result in at most one accepted update and an explicit conflict for the stale update.
+- [x] Integration tests cover complete and pending outcomes, full-snapshot replacement, retries, invalid input, state guards and concurrent updates.
+- [x] Test count: 9 triage-service integration tests pass.
+- [x] Gate check passes: `pytest -v` - 43 passed, 1 pre-existing deprecation warning.
 
 **Tests**: integration
 **Gate**: full
 **Commit**: `feat(triage): evaluate ticket snapshots`
+**Gate result**: `pytest -v` - 43 passed, 1 pre-existing deprecation warning.
+**Status**: Complete
 
 ---
 
@@ -313,7 +316,7 @@ Proof: run tests | tests/integration/test_triage_service.py::test_em_triagem_ret
 
 The feature's live state, written as it happens - a compaction gives no warning.
 
-**Settled mid-build**: none; execution has not started.
+**Settled mid-build**: none; T1-T5 complete, next is T6.
 **Dispatched**: none; 8 tasks fit within one inline batch.
 **Walked**: not yet; no user-facing screen or public classification API is in scope.
 

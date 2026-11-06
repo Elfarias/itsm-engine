@@ -2,7 +2,7 @@
 
 **Gathered:** 2026-11-06
 **Spec:** `.specs/features/ticket-triage/spec.md`
-**Status:** T4 complete; ready to execute T5
+**Status:** T1-T5 complete; ready to execute T6: architecture documentation
 
 ---
 
