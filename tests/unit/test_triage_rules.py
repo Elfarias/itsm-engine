@@ -1,4 +1,5 @@
 import pytest
+from pydantic import ValidationError
 
 from app.tickets.schemas import TicketStatus
 from app.triage.rules import calculate_priority, evaluate_facts
@@ -47,18 +48,62 @@ def test_priority_matrix_covers_all_nine_combinations() -> None:
 def test_complete_facts_calculate_priority_and_use_catalog_mapped_team(
     catalog: CatalogSnapshot,
 ) -> None:
+    expected_priorities = {
+        (Impact.ALTO, Urgency.ALTA): Priority.P1,
+        (Impact.ALTO, Urgency.MEDIA): Priority.P2,
+        (Impact.ALTO, Urgency.BAIXA): Priority.P2,
+        (Impact.MEDIO, Urgency.ALTA): Priority.P2,
+        (Impact.MEDIO, Urgency.MEDIA): Priority.P3,
+        (Impact.MEDIO, Urgency.BAIXA): Priority.P3,
+        (Impact.BAIXO, Urgency.ALTA): Priority.P3,
+        (Impact.BAIXO, Urgency.MEDIA): Priority.P4,
+        (Impact.BAIXO, Urgency.BAIXA): Priority.P4,
+    }
+
+    for (impact, urgency), expected_priority in expected_priorities.items():
+        facts = TriageFacts(
+            service_id="service-endpoint",
+            impact=impact,
+            urgency=urgency,
+        )
+        decision = evaluate_facts(facts, catalog)
+
+        assert decision.status is TicketStatus.EM_TRIAGEM
+        assert decision.priority is expected_priority
+        assert decision.target_team == "team-workplace"
+        assert decision.facts == facts
+
+
+def test_catalog_mapping_controls_team_and_rejects_caller_assignment(
+    catalog: CatalogSnapshot,
+) -> None:
     facts = TriageFacts(
         service_id="service-endpoint",
-        impact=Impact.MEDIO,
+        impact=Impact.ALTO,
         urgency=Urgency.ALTA,
     )
+    remapped_catalog = catalog.model_copy(
+        update={
+            "service_teams": {
+                "service-connectivity": "team-network",
+                "service-endpoint": "team-network",
+            }
+        }
+    )
 
-    decision = evaluate_facts(facts, catalog)
+    with pytest.raises(ValidationError):
+        TriageFacts.model_validate(
+            {
+                "service_id": "service-endpoint",
+                "impact": "ALTO",
+                "urgency": "ALTA",
+                "target_team": "team-workplace",
+            }
+        )
 
-    assert decision.status is TicketStatus.EM_TRIAGEM
-    assert decision.priority is Priority.P2
-    assert decision.target_team == "team-workplace"
-    assert decision.facts == facts
+    decision = evaluate_facts(facts, remapped_catalog)
+
+    assert decision.target_team == "team-network"
 
 
 def test_missing_facts_or_team_mapping_produce_pending_without_assignment(

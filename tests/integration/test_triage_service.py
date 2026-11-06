@@ -177,6 +177,29 @@ def test_complete_evaluation_persists_snapshot_and_em_triagem(
         "catalog-v1",
         1,
     )
+    with psycopg.connect(owner_connection) as connection:
+        event = connection.execute(
+            """
+            SELECT event_type, details
+            FROM audit_events
+            WHERE ticket_id = %s AND event_type = 'TICKET_TRIAGE_EVALUATED'
+            """,
+            (ticket.id,),
+        ).fetchone()
+    assert event == (
+        "TICKET_TRIAGE_EVALUATED",
+        {
+            "previous_status": "NOVO",
+            "status": "EM_TRIAGEM",
+            "service_id": "service-endpoint",
+            "asset_id": "asset-laptop-001",
+            "impact": "ALTO",
+            "urgency": "ALTA",
+            "priority": "P1",
+            "target_team": "team-workplace",
+            "catalog_version": "catalog-v1",
+        },
+    )
 
 
 def test_missing_facts_or_team_mapping_leave_ticket_pending(
@@ -394,8 +417,12 @@ def test_invalid_facts_leave_ticket_unchanged(
     ticket = create_ticket(runtime_connection, "Reject unknown catalog facts")
     before = _stored_classification(owner_connection, ticket.id)
 
-    with pytest.raises(ValidationError):
-        TriageFacts.model_validate({"impact": "CRITICO"})
+    for invalid_values in (
+        {"impact": "CRITICO"},
+        {"urgency": "URGENTE"},
+    ):
+        with pytest.raises(ValidationError):
+            TriageFacts.model_validate(invalid_values)
 
     invalid_snapshots = (
         _complete_facts(service_id="service-unknown"),
@@ -406,6 +433,80 @@ def test_invalid_facts_leave_ticket_unchanged(
             evaluate_ticket(runtime_connection, ticket.id, facts, 0)
 
     assert _stored_classification(owner_connection, ticket.id) == before
+
+
+def test_ticket_and_audit_write_failures_roll_back_evaluation(
+    migrated_database_roles: tuple[str, str],
+) -> None:
+    owner_connection, runtime_connection = migrated_database_roles
+    ticket = create_ticket(runtime_connection, "Rollback failed evaluation")
+    facts = _complete_facts()
+    before = _stored_classification(owner_connection, ticket.id)
+    trigger_cases = (
+        (
+            """
+            CREATE FUNCTION reject_triage_ticket_update() RETURNS trigger
+            LANGUAGE plpgsql AS $$
+            BEGIN
+                IF NEW.facts_revision > OLD.facts_revision THEN
+                    RAISE EXCEPTION 'forced triage ticket failure';
+                END IF;
+                RETURN NEW;
+            END;
+            $$;
+            CREATE TRIGGER reject_triage_ticket_update
+            BEFORE UPDATE ON tickets
+            FOR EACH ROW EXECUTE FUNCTION reject_triage_ticket_update();
+            """,
+            """
+            DROP TRIGGER IF EXISTS reject_triage_ticket_update ON tickets;
+            DROP FUNCTION IF EXISTS reject_triage_ticket_update();
+            """,
+        ),
+        (
+            """
+            CREATE FUNCTION reject_triage_audit_insert() RETURNS trigger
+            LANGUAGE plpgsql AS $$
+            BEGIN
+                IF NEW.event_type = 'TICKET_TRIAGE_EVALUATED' THEN
+                    RAISE EXCEPTION 'forced triage audit failure';
+                END IF;
+                RETURN NEW;
+            END;
+            $$;
+            CREATE TRIGGER reject_triage_audit_insert
+            BEFORE INSERT ON audit_events
+            FOR EACH ROW EXECUTE FUNCTION reject_triage_audit_insert();
+            """,
+            """
+            DROP TRIGGER IF EXISTS reject_triage_audit_insert ON audit_events;
+            DROP FUNCTION IF EXISTS reject_triage_audit_insert();
+            """,
+        ),
+    )
+
+    for create_trigger, drop_trigger in trigger_cases:
+        with psycopg.connect(owner_connection) as connection:
+            connection.execute(create_trigger)
+        try:
+            with pytest.raises(psycopg.errors.RaiseException):
+                evaluate_ticket(runtime_connection, ticket.id, facts, 0)
+        finally:
+            with psycopg.connect(owner_connection) as connection:
+                connection.execute(drop_trigger)
+
+        assert _stored_classification(owner_connection, ticket.id) == before
+        with psycopg.connect(owner_connection) as connection:
+            event_count = connection.execute(
+                """
+                SELECT count(*)
+                FROM audit_events
+                WHERE ticket_id = %s
+                  AND event_type = 'TICKET_TRIAGE_EVALUATED'
+                """,
+                (ticket.id,),
+            ).fetchone()[0]
+        assert event_count == 0
 
 
 def test_concurrent_snapshots_reject_stale_revision(

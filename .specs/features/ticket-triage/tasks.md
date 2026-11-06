@@ -132,7 +132,7 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 - [x] Complete facts produce the matrix priority and only the catalog-mapped team.
 - [x] Missing required facts, missing team mapping and an asset/service mismatch produce pending decisions with no priority or target team.
 - [x] Unit tests cover every rule branch and the listed rule edge cases.
-- [x] Test count: 4 triage-rule unit tests pass.
+- [x] Test count: 5 triage-rule unit tests pass.
 - [x] Gate check passes: `pytest -v tests/unit`.
 
 **Tests**: unit
@@ -186,13 +186,13 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 - [x] Invalid references and enum values leave the ticket unchanged; invalid ticket states are rejected.
 - [x] Concurrent different snapshots based on one pending revision result in at most one accepted update and an explicit conflict for the stale update.
 - [x] Integration tests cover complete and pending outcomes, full-snapshot replacement, retries, invalid input, state guards and concurrent updates.
-- [x] Test count: 9 triage-service integration tests pass.
+- [x] Test count: 10 triage-service integration tests pass.
 - [x] Gate check passes: `pytest -v` - 43 passed, 1 pre-existing deprecation warning.
 
 **Tests**: integration
 **Gate**: full
 **Commit**: `feat(triage): evaluate ticket snapshots`
-**Gate result**: `pytest -v` - 43 passed, 1 pre-existing deprecation warning.
+**Gate result**: Initial T5 gate: 43 passed. After verification fixes, `pytest -v` - 45 passed, 1 pre-existing deprecation warning.
 **Status**: Complete
 
 ---
@@ -281,7 +281,7 @@ Proof: run tests | tests/unit/test_triage_rules.py::test_priority_matrix_covers_
 Proof: run tests | tests/unit/test_triage_rules.py::test_complete_facts_calculate_priority_and_use_catalog_mapped_team PASSED
 
 **C5** - The service mapping, not caller input, determines the target team (TRI-05, AC 5)
-Proof: run tests | tests/unit/test_triage_rules.py::test_complete_facts_calculate_priority_and_use_catalog_mapped_team PASSED
+Proof: run tests | tests/unit/test_triage_rules.py::test_catalog_mapping_controls_team_and_rejects_caller_assignment PASSED
 
 **C6** - A complete evaluation persists its facts, priority and mapped team and leaves the ticket in `EM_TRIAGEM` (TRI-06, AC 6)
 Proof: run tests | tests/integration/test_triage_service.py::test_complete_evaluation_persists_snapshot_and_em_triagem PASSED
@@ -308,10 +308,10 @@ Proof: run tests | tests/integration/test_triage_service.py::test_invalid_facts_
 Proof: run tests | tests/integration/test_triage_service.py::test_concurrent_snapshots_reject_stale_revision PASSED
 
 **C14** - A changed evaluation appends an audit event associated with the ticket and catalog version (TRI-14, AC 14)
-Proof: run tests | tests/integration/test_triage_repository.py::test_evaluation_audit_records_catalog_version PASSED
+Proof: run tests | tests/integration/test_triage_service.py::test_complete_evaluation_persists_snapshot_and_em_triagem PASSED
 
 **C15** - An audit write failure rolls back the ticket evaluation and its audit event (TRI-15, AC 15)
-Proof: run tests | tests/integration/test_triage_repository.py::test_audit_failure_rolls_back_evaluation PASSED
+Proof: run tests | tests/integration/test_triage_service.py::test_ticket_and_audit_write_failures_roll_back_evaluation PASSED
 
 **C16** - An identical retry in `EM_TRIAGEM` returns the stored result and catalog version after the active catalog changes (TRI-16, AC 16)
 Proof: run tests | tests/integration/test_triage_service.py::test_em_triagem_retry_returns_stored_catalog_version PASSED
@@ -323,7 +323,7 @@ Proof: run tests | tests/integration/test_triage_service.py::test_em_triagem_ret
 The feature's live state, written as it happens - a compaction gives no warning.
 
 **Settled mid-build**: none; T1-T8 complete.
-**Dispatched**: none; 8 tasks fit within one inline batch.
+**Dispatched**: Verifier (general-purpose sub-agent) returned FAIL for HEAD `8c05443`, diff `2388139^..8c05443`; findings addressed in the verification-fix commit. No screen captures apply.
 **Walked**: not yet; no user-facing screen or public classification API is in scope.
 
 ---
