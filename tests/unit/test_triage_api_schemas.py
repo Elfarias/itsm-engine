@@ -38,6 +38,10 @@ def test_triage_request_requires_facts_and_nonnegative_revision() -> None:
         {"facts": {}},
         {"expected_revision": -1, "facts": {}},
         {"expected_revision": 0},
+        {"expected_revision": True, "facts": {}},
+        {"expected_revision": False, "facts": {}},
+        {"expected_revision": 1.0, "facts": {}},
+        {"expected_revision": "1", "facts": {}},
     )
 
     for payload in invalid_requests:

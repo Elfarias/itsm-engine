@@ -237,6 +237,45 @@ def test_partial_and_conflicting_facts_return_pending(
             1,
         )
 
+    ticket_id = _create_ticket(api_client, "Replace pending snapshot")
+    initial_facts = {
+        "service_id": "service-endpoint",
+        "asset_id": "asset-laptop-001",
+        "impact": "ALTO",
+    }
+    initial_response = _post_triage(api_client, ticket_id, initial_facts)
+    updated_facts = {"service_id": "service-endpoint", "urgency": "ALTA"}
+
+    updated_response = _post_triage(
+        api_client,
+        ticket_id,
+        updated_facts,
+        expected_revision=initial_response.json()["facts_revision"],
+    )
+
+    assert initial_response.status_code == 200
+    assert initial_response.json()["status"] == "PENDENTE_INFORMACAO"
+    assert updated_response.status_code == 200
+    assert updated_response.json()["facts"] == {
+        "service_id": "service-endpoint",
+        "asset_id": None,
+        "impact": None,
+        "urgency": "ALTA",
+    }
+    assert updated_response.json()["facts_revision"] == 2
+    assert _stored_ticket(owner_connection, ticket_id) == (
+        "PENDENTE_INFORMACAO",
+        "service-endpoint",
+        None,
+        None,
+        "ALTA",
+        None,
+        None,
+        "catalog-v1",
+        2,
+    )
+    assert _evaluation_event_count(owner_connection, ticket_id) == 2
+
 
 def test_missing_ticket_returns_404(
     api_client: TestClient,
@@ -267,6 +306,18 @@ def test_invalid_request_and_catalog_facts_return_422_without_changes(
         (
             f"/tickets/{ticket_id}/triage",
             {"expected_revision": 0, "facts": {"impact": "CRITICO"}},
+        ),
+        (
+            f"/tickets/{ticket_id}/triage",
+            {"expected_revision": True, "facts": {}},
+        ),
+        (
+            f"/tickets/{ticket_id}/triage",
+            {"expected_revision": 1.0, "facts": {}},
+        ),
+        (
+            f"/tickets/{ticket_id}/triage",
+            {"expected_revision": "1", "facts": {}},
         ),
         (
             f"/tickets/{ticket_id}/triage",
@@ -478,6 +529,42 @@ def test_evaluation_or_audit_failure_returns_503_without_partial_changes(
     migrated_database_roles: tuple[str, str],
 ) -> None:
     owner_connection, _ = migrated_database_roles
+    update_ticket_id = _create_ticket(api_client, "Ticket update rollback")
+    before_update = _stored_ticket(owner_connection, update_ticket_id)
+    with psycopg.connect(owner_connection) as connection:
+        connection.execute(
+            """
+            CREATE FUNCTION reject_triage_api_ticket_update() RETURNS trigger
+            LANGUAGE plpgsql AS $$
+            BEGIN
+                RAISE EXCEPTION 'forced triage ticket update failure';
+            END;
+            $$;
+            CREATE TRIGGER reject_triage_api_ticket_update
+            BEFORE UPDATE ON tickets
+            FOR EACH ROW EXECUTE FUNCTION reject_triage_api_ticket_update();
+            """
+        )
+
+    try:
+        update_response = _post_triage(
+            api_client,
+            update_ticket_id,
+            _complete_facts(),
+        )
+    finally:
+        with psycopg.connect(owner_connection) as connection:
+            connection.execute(
+                """
+                DROP TRIGGER IF EXISTS reject_triage_api_ticket_update ON tickets;
+                DROP FUNCTION IF EXISTS reject_triage_api_ticket_update();
+                """
+            )
+
+    assert update_response.status_code == 503
+    assert _stored_ticket(owner_connection, update_ticket_id) == before_update
+    assert _evaluation_event_count(owner_connection, update_ticket_id) == 0
+
     ticket_id = _create_ticket(api_client, "Audit rollback")
     before = _stored_ticket(owner_connection, ticket_id)
     with psycopg.connect(owner_connection) as connection:

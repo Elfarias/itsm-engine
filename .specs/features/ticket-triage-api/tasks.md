@@ -78,7 +78,7 @@ T3, T4, T5
 
 - [x] The request model requires an integer `expected_revision` greater than or equal to zero and a `facts` object.
 - [x] The facts object accepts the optional fields defined by the spec as a complete snapshot and rejects extra fields.
-- [x] Unit tests cover valid complete and partial requests, missing/negative revision, and extra fields.
+- [x] Unit tests cover valid complete and partial requests, missing/negative/non-integer revision values, and extra fields.
 - [x] Gate check passes: `pytest -v tests/unit`.
 - [x] Test count: 14 unit tests pass (11 existing plus 3 new schema tests).
 
@@ -91,7 +91,7 @@ T3, T4, T5
 ### T2: Exposing deterministic triage through the ticket API
 
 **What**: Add `POST /tickets/{ticket_id}/triage`, invoke `evaluate_ticket`, return its persisted result, and translate domain and persistence failures to the approved HTTP statuses.
-**Where**: `app/tickets/routes.py`, `tests/integration/test_triage_catalogs.py`
+**Where**: `app/tickets/routes.py`
 **Depends on**: T1
 **Reuses**: `evaluate_ticket` from `app/triage/service.py`, `TicketTriageRequest` from `app/triage/api_schemas.py`, and existing ticket route error handling.
 **Requirement**: TRIAPI-02, TRIAPI-03, TRIAPI-04, TRIAPI-05, TRIAPI-06, TRIAPI-07, TRIAPI-08, TRIAPI-09, TRIAPI-10, TRIAPI-11, TRIAPI-12, TRIAPI-13
@@ -100,7 +100,7 @@ T3, T4, T5
 
 - [x] The endpoint returns the response fields and successful complete/pending outcomes specified in the Spec.
 - [x] It maps missing tickets to 404, malformed/invalid requests and facts to 422, state/revision conflicts to 409, and database/catalog failures to 503.
-- [x] Integration tests cover the complete, pending, missing-ticket, invalid-input, conflict, pending-retry, active-catalog-change, completed-retry, persistence-failure and missing-active-catalog cases.
+- [x] Integration tests cover complete and partial-snapshot replacement, missing-ticket, invalid-input, conflict, retry behavior, ticket-update and audit persistence failures, and missing active catalog.
 - [x] The existing loopback binding test remains green; no public-interface binding is introduced.
 - [x] Gate check passes: `pytest -v`.
 - [x] Integration gate: `pytest -v tests/integration` passes 44 tests (34 existing plus 10 new API tests).
@@ -178,7 +178,7 @@ T3, T4, T5
 
 **Run tests**: `pytest -v`
 
-**C1** - The request facts object accepts the optional fields as a complete snapshot (TRIAPI-01, AC 1)
+**C1** - The request accepts a nonnegative integer revision and optional facts fields as a complete snapshot (TRIAPI-01, AC 1)
 Proof: run tests | `tests/unit/test_triage_api_schemas.py::test_triage_request_accepts_complete_and_partial_facts PASSED`
 
 **C2** - A successful evaluation returns all specified response fields with HTTP 200 (TRIAPI-02, AC 2)
@@ -193,7 +193,7 @@ Proof: run tests | `tests/integration/test_triage_api.py::test_partial_and_confl
 **C5** - A valid UUID for a missing ticket returns 404 without creating or changing a ticket (TRIAPI-05, AC 5)
 Proof: run tests | `tests/integration/test_triage_api.py::test_missing_ticket_returns_404 PASSED`
 
-**C6** - Invalid request shape, path UUID, facts, enum or catalog reference returns 422 without changing the ticket (TRIAPI-06, AC 6)
+**C6** - Invalid request shape, non-integer revision, path UUID, facts, enum or catalog reference returns 422 without changing the ticket (TRIAPI-06, AC 6)
 Proof: run tests | `tests/integration/test_triage_api.py::test_invalid_request_and_catalog_facts_return_422_without_changes PASSED`
 
 **C7** - A stale revision or incompatible state returns 409 and preserves persisted facts and result (TRIAPI-07, AC 7)
@@ -208,7 +208,7 @@ Proof: run tests | `tests/integration/test_triage_api.py::test_pending_retry_use
 **C10** - An identical `EM_TRIAGEM` retry returns its persisted result and catalog version regardless of the active catalog (TRIAPI-10, AC 10)
 Proof: run tests | `tests/integration/test_triage_api.py::test_em_triagem_retry_returns_stored_catalog_version PASSED`
 
-**C11** - Evaluation or audit persistence failure returns 503 without partial ticket or audit writes (TRIAPI-11, AC 11)
+**C11** - Ticket-update or audit persistence failure returns 503 without partial ticket or audit writes (TRIAPI-11, AC 11)
 Proof: run tests | `tests/integration/test_triage_api.py::test_evaluation_or_audit_failure_returns_503_without_partial_changes PASSED`
 
 **C12** - Missing active catalog returns 503 and leaves the ticket unchanged (TRIAPI-12, AC 12)
@@ -223,9 +223,9 @@ Proof: run tests | `tests/integration/test_app_runtime.py::test_server_binds_to_
 
 The feature's live state, written as it happens.
 
-**Settled mid-build**: none.
-**Dispatched**: none.
-**Walked**: not yet; the feature is an API with no user-facing screen.
+**Settled mid-build**: user confirmed "Sim, atualizar" the exact OpenAPI route inventory to include the new triage endpoint; user authorized "Autorizar correções" for the verifier findings.
+**Dispatched**: Verifier pending at `e997290`; screens not applicable because no criterion cites a capture.
+**Walked**: not applicable; the feature is an API with no user-facing screen.
 
 ---
 
