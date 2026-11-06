@@ -4,7 +4,7 @@ import psycopg
 import pytest
 from psycopg.errors import CheckViolation
 
-from app.tickets.repository import create_ticket
+from app.tickets.repository import create_ticket, get_ticket
 
 
 def test_ticket_schema_defaults_and_constraints(
@@ -119,3 +119,24 @@ def test_audit_insert_failure_rolls_back_ticket(
 
     assert ticket_count == 0
     assert event_count == 0
+
+
+def test_get_ticket_returns_persisted_ticket_fields(
+    migrated_database_roles: tuple[str, str],
+) -> None:
+    _, runtime_connection = migrated_database_roles
+    created_ticket = create_ticket(runtime_connection, "Network outage")
+
+    retrieved_ticket = get_ticket(runtime_connection, created_ticket.id)
+
+    assert retrieved_ticket == created_ticket
+
+
+def test_get_ticket_returns_none_for_unknown_id(
+    migrated_database_roles: tuple[str, str],
+) -> None:
+    _, runtime_connection = migrated_database_roles
+
+    retrieved_ticket = get_ticket(runtime_connection, uuid4())
+
+    assert retrieved_ticket is None

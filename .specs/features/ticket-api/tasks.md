@@ -209,14 +209,16 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] Lookup returns the stored identifier, description, state, and timestamp for an existing ticket.
-- [ ] Lookup returns a not-found result for an unknown UUID.
-- [ ] Two PostgreSQL integration tests cover existing and missing records.
-- [ ] Test count: 2 repository lookup integration tests pass.
+- [x] Lookup returns the stored identifier, description, state, and timestamp for an existing ticket.
+- [x] Lookup returns a not-found result for an unknown UUID.
+- [x] Two PostgreSQL integration tests cover existing and missing records.
+- [x] Test count: 2 repository lookup integration tests pass.
 
 **Tests**: integration
 **Gate**: Full
 **Commit**: `feat(tickets): add ticket lookup by UUID`
+**Status**: Complete
+**Gate result**: `pytest -v` - 12 passed.
 
 ---
 
