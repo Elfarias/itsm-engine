@@ -11,10 +11,13 @@ O ITSM Agent é uma aplicação de triagem inteligente de incidentes de TI.
 A arquitetura-alvo combina interpretação de texto, dados operacionais e
 regras determinísticas. A fatia implementada recebe chamados pela API,
 mantém catálogos versionados e classifica fatos estruturados por um
-serviço Python interno.
+serviço Python acessível pela rota local
+`POST /tickets/{ticket_id}/triage`.
 
 LLM, KEDB e integração ITSM externa são evoluções futuras. A
-classificação atual não usa LLM e não possui endpoint público.
+classificação atual não usa LLM. A rota não requer autenticação e só fica
+disponível no servidor ligado a `127.0.0.1`; acesso por rede pública ou
+remota está fora do escopo.
 
 **Princípio central:** quando a interpretação por IA for adicionada, a
 aplicação continuará validando os fatos e executando as regras de
@@ -47,20 +50,24 @@ IA.
 ### Fatia implementada
 
 1. API FastAPI para criar e consultar chamados.
-2. PostgreSQL como persistência relacional.
-3. Catálogos sintéticos e versionados de serviços, ativos e equipes, sem
+2. Rota local `POST /tickets/{ticket_id}/triage` para avaliar um chamado
+   existente por fatos estruturados.
+3. PostgreSQL como persistência relacional.
+4. Catálogos sintéticos e versionados de serviços, ativos e equipes, sem
    CRUD administrativo.
-4. Serviço interno de regras determinísticas para prioridade e
+5. Serviço interno de regras determinísticas para prioridade e
    roteamento por serviço.
-5. Persistência de snapshots completos, controle de revisão, estados de
+6. Persistência de snapshots completos, controle de revisão, estados de
    triagem e auditoria transacional append-only.
-6. Execução local e testes de integração com Docker Compose.
+7. Execução local e testes de integração com Docker Compose.
 
 ### Evoluções futuras
 
 - Interpretação de descrições em texto livre por LLM e extração estruturada.
 - Consultas à KEDB.
-- Orquestrador e canal público de complementação ou classificação.
+- Acesso remoto à API, com autenticação e autorização; a rota atual
+  permanece restrita ao loopback.
+- Orquestrador e canal remoto de complementação de chamados.
 - Integração ITSM externa com retry, timeout e idempotência remota.
 - Interface gráfica completa para operadores.
 - Plataforma de microsserviços, Kubernetes, broker, Redis, PGVector ou
@@ -87,10 +94,11 @@ concreto que os justifique.
 ## 6. Fluxo da fatia implementada
 
 1. A API recebe um chamado, valida o contrato e persiste o estado `NOVO`.
-2. Um chamador interno fornece um snapshot de fatos estruturados e a
-   revisão esperada ao serviço de triagem.
-3. O serviço bloqueia o chamado, verifica estado e revisão e carrega a
-   versão ativa do catálogo.
+2. Um cliente local envia `POST /tickets/{ticket_id}/triage` com
+   `expected_revision` e `facts`, o snapshot completo. Os campos de fatos
+   omitidos substituem valores anteriores por `NULL`.
+3. A rota delega a avaliação ao serviço, que bloqueia o chamado, verifica
+   estado e revisão e carrega a versão ativa do catálogo.
 4. As regras validam referências e consistência do ativo, calculam a
    prioridade pela matriz aprovada e obtêm a equipe pelo mapeamento do
    serviço.
@@ -99,9 +107,11 @@ concreto que os justifique.
 6. Dados completos deixam o chamado em `EM_TRIAGEM`. Fatos ausentes ou
    conflitantes deixam-no em `PENDENTE_INFORMACAO`, sem prioridade ou
    equipe.
-7. Uma avaliação pendente substitui o snapshot completo. Um retry
-   idêntico não duplica efeitos; revisões concorrentes desatualizadas
-   geram conflito explícito.
+7. Uma repetição pendente idêntica com o mesmo catálogo não duplica
+   efeitos; com uma nova versão ativa e a revisão atual, reavalia o
+   snapshot. Uma repetição idêntica em `EM_TRIAGEM` retorna o resultado
+   e a versão persistidos, mesmo após mudança do catálogo ativo.
+   Revisões concorrentes desatualizadas geram conflito explícito.
 
 Esta fatia não extrai fatos do texto do chamado nem envia atualizações a
 um sistema ITSM externo. Esses fluxos ficam para etapas futuras.
@@ -210,6 +220,8 @@ A fatia determinística é funcional quando demonstra:
 - Matriz de prioridade aprovada e roteamento pelo catálogo.
 - Persistência completa de avaliações, estados pendentes e reavaliações.
 - Retry idempotente, conflito de revisão e auditoria transacional.
+- Avaliação de chamados existentes pela API local restrita a
+  `127.0.0.1`.
 - Execução local por Docker Compose e testes automatizados.
 
 ## 11. Premissas e decisões pendentes
@@ -220,8 +232,7 @@ implementação:
 - Provedor, modelo e política de uso do LLM.
 - Critérios objetivos para classificar impacto e urgência.
 - Contrato da API simulada e formato dos erros.
-- Estratégia de autenticação entre componentes, caso sejam expostos
-    além do ambiente local.
+- Autenticação e autorização antes de qualquer acesso remoto à API.
 - Serviço de gerenciamento de segredos para o ambiente de produção.
 - Política de retenção dos eventos de auditoria.
 - Critérios de revisão humana e autorização de reprocessamento.

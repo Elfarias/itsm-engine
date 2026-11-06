@@ -164,9 +164,9 @@ T3, T4, T5
 
 **Done when**:
 
-- [ ] The implemented scope identifies the local-only triage endpoint.
-- [ ] Public-network access, authentication, LLM and external ITSM remain future scope.
-- [ ] Gate check passes: `pytest -v`.
+- [x] The implemented scope identifies the local-only triage endpoint.
+- [x] Public-network access, authentication, LLM and external ITSM remain future scope.
+- [x] Gate check passes: `pytest -v`.
 
 **Tests**: none
 **Gate**: build
