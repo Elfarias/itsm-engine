@@ -250,22 +250,24 @@ T7 -> T8
 ### T8: Retrieving tickets through the REST endpoint
 
 **What**: Implement `GET /tickets/{id}` to validate UUID path values, return persisted ticket fields, and report missing records.
-**Where**: `app/tickets/routes.py`
+**Where**: `app/tickets/routes.py` and integration tests in `tests/integration/test_ticket_api.py`.
 **Depends on**: T1, T3, T6, T7
 **Reuses**: The FastAPI application and route module from T1 and T7, the response schema from T3, and repository lookup from T6.
 **Requirement**: TKT-07, TKT-09, TKT-10, TKT-11, TKT-13
 
 **Done when**:
 
-- [ ] A local request without authentication returns `200` and the persisted identifier, description, state, and timestamp.
-- [ ] An unknown UUID returns `404`; a path value that is not a UUID returns `422`.
-- [ ] A ticket created before the application is restarted remains available after the application is restarted while PostgreSQL remains available.
-- [ ] Five route integration tests cover response fields, missing UUID, invalid UUID, application restart, and unauthenticated local access.
-- [ ] Test count: 5 route integration tests pass.
+- [x] A local request without authentication returns `200` and the persisted identifier, description, state, and timestamp.
+- [x] An unknown UUID returns `404`; a path value that is not a UUID returns `422`.
+- [x] A ticket created before the application is restarted remains available after the application is restarted while PostgreSQL remains available.
+- [x] Five route integration tests cover response fields, missing UUID, invalid UUID, application restart, and unauthenticated local access.
+- [x] Test count: 5 route integration tests pass.
 
 **Tests**: integration
 **Gate**: Full
 **Commit**: `feat(api): add ticket lookup endpoint`
+**Status**: Complete
+**Gate result**: `pytest -v` - 22 passed.
 
 ---
 
