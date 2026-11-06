@@ -24,7 +24,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | ---------- | ------------------ | -------------------- | ---------------- | ----------- |
 | Interpretation response schemas | unit | Exact structured fields, nullability, allowed enums, extra-field rejection, partial outputs | `tests/unit/test_interpretation_schemas.py` | `pytest -v` |
 | OpenRouter HTTP client | unit | Correct endpoint/auth/model/schema/timeout; only one request; missing config, timeout, HTTP errors, malformed envelope | `tests/unit/test_openrouter_client.py` | `pytest -v` |
-| Interpretation service | unit | Prompt contains only ticket description as ticket data; valid, partial, and invalid model output behavior | `tests/unit/test_interpretation_service.py` | `pytest -v` |
+| Interpretation service | unit | Prompt treats the description as untrusted text with no ticket identifiers or catalog data; complete, partial, and invalid model output behavior | `tests/unit/test_interpretation_service.py` | `pytest -v` |
 | Ticket interpretation endpoint | integration | Existing/missing ticket, response contract, provider failures, no ticket/audit writes, loopback-only exposure | `tests/integration/test_ticket_interpretation_api.py`, `tests/integration/test_app_runtime.py` | `pytest -v` |
 | Documentation and progress tracker | unit | Required route, provider configuration, data boundary, non-mutation behavior, and in-progress delivery entry are recorded | `tests/unit/test_interpretation_docs.py`, `tests/unit/test_project_progress.py` | `pytest -v` |
 
@@ -128,15 +128,17 @@ T4 → T7
 
 **Done when**:
 
-- [ ] The service returns complete or partial validated proposals and never calculates priority/team or maps free-text candidates to catalog IDs.
-- [ ] Prompt construction treats the ticket description as untrusted text and includes no ticket identifiers or catalog data.
-- [ ] Invalid or malformed model output is surfaced as an explicit upstream-response error.
-- [ ] Unit tests cover full and partial extraction, prompt data boundaries, and invalid responses.
-- [ ] Gate check passes: `pytest -v tests/unit`.
+- [x] The service returns complete or partial validated proposals and never calculates priority/team or maps free-text candidates to catalog IDs.
+- [x] Prompt construction treats the ticket description as untrusted text and includes no ticket identifiers or catalog data.
+- [x] Invalid or malformed model output is surfaced as an explicit upstream-response error.
+- [x] Unit tests cover full and partial extraction, prompt data boundaries, and invalid responses.
+- [x] Gate check passes: `pytest -v tests/unit`.
 
 **Tests**: unit
 **Gate**: quick
 **Commit**: `feat(triage): implement ticket interpretation service`
+**Status**: Complete
+**Gate result**: `pytest -v tests/unit` - 26 passed (24 before this task plus 2 service tests).
 
 ---
 
@@ -237,28 +239,31 @@ Proof: run tests | `tests/unit/test_openrouter_client.py::test_client_sends_sche
 **C3** - Missing configuration and upstream timeout/rate limit fail explicitly without retry (LLM-07, LLM-08)
 Proof: run tests | `tests/unit/test_openrouter_client.py::test_client_maps_missing_config_and_provider_failures_without_retry PASSED`
 
-**C4** - The service returns valid partial proposals and rejects malformed model output (LLM-05, LLM-09)
-Proof: run tests | `tests/unit/test_interpretation_service.py::test_service_returns_partial_proposal_and_rejects_invalid_output PASSED`
+**C4** - The service returns complete and partial proposals and surfaces malformed provider output (LLM-03, LLM-05, LLM-09)
+Proof: run tests | `tests/unit/test_interpretation_service.py::test_service_returns_partial_proposal_and_propagates_invalid_output PASSED`
 
-**C5** - The route returns `404` without a provider call for a missing ticket and returns valid proposals for existing tickets (LLM-01, LLM-02, LLM-03)
+**C5** - The prompt treats descriptions as untrusted text and contains no ticket identifiers or catalog data (LLM-01, LLM-11)
+Proof: run tests | `tests/unit/test_interpretation_service.py::test_service_treats_description_as_untrusted_without_other_ticket_data PASSED`
+
+**C6** - The route returns `404` without a provider call for a missing ticket and returns valid proposals for existing tickets (LLM-01, LLM-02, LLM-03)
 Proof: run tests | `tests/integration/test_ticket_interpretation_api.py::test_interpretation_returns_proposal_for_existing_ticket PASSED`
 
-**C6** - Provider errors map to explicit HTTP responses and ticket/audit state remains unchanged (LLM-06, LLM-08, LLM-09)
+**C7** - Provider errors map to explicit HTTP responses and ticket/audit state remains unchanged (LLM-06, LLM-08, LLM-09)
 Proof: run tests | `tests/integration/test_ticket_interpretation_api.py::test_provider_failures_return_errors_without_ticket_or_audit_changes PASSED`
 
-**C7** - Interpretation remains available only through the loopback-bound local server (LLM-10)
+**C8** - Interpretation remains available only through the loopback-bound local server (LLM-10)
 Proof: run tests | `tests/integration/test_app_runtime.py::test_server_binds_to_loopback_only PASSED`
 
-**C8** - Interpretation does not log descriptions, prompts, provider responses, or keys (LLM-11)
+**C9** - Interpretation does not log descriptions, prompts, provider responses, or keys (LLM-11)
 Proof: run tests | `tests/integration/test_ticket_interpretation_api.py::test_interpretation_does_not_log_sensitive_content PASSED`
 
-**C9** - README documents the local proposal-first flow and required configuration (LLM-01, LLM-06, LLM-07, LLM-10)
+**C10** - README documents the local proposal-first flow and required configuration (LLM-01, LLM-06, LLM-07, LLM-10)
 Proof: run tests | `tests/unit/test_interpretation_docs.py::test_readme_documents_local_proposal_flow_and_configuration PASSED`
 
-**C10** - Architecture docs preserve the separation between LLM proposals and deterministic decisions (LLM-04, LLM-06, LLM-11)
+**C11** - Architecture docs preserve the separation between LLM proposals and deterministic decisions (LLM-04, LLM-06, LLM-11)
 Proof: run tests | `tests/unit/test_interpretation_docs.py::test_architecture_documents_provider_and_deterministic_boundaries PASSED`
 
-**C11** - The centralized project progress tracker records this feature as in progress with evidence links (LLM-01)
+**C12** - The centralized project progress tracker records this feature as in progress with evidence links (LLM-01)
 Proof: run tests | `tests/unit/test_project_progress.py::test_dashboard_lists_in_progress_interpretation_delivery PASSED`
 
 ---
