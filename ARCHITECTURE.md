@@ -57,18 +57,30 @@ atual recebe fatos estruturados e não chama um LLM.
 
 Responsabilidades:
 
-- Expor endpoints REST para criar e consultar chamados.
-- Validar contratos de entrada e saída.
-- Não expor nesta fatia uma rota pública de classificação nem operações de
-  CRUD dos catálogos.
+- Expor endpoints REST para criar e consultar chamados e
+  `POST /tickets/{ticket_id}/triage` para iniciar a avaliação de um
+  chamado existente.
+- Restringir a API atual ao servidor local ligado a `127.0.0.1`; a rota
+  de triagem é sem autenticação e não deve ser exposta à rede pública.
+- Validar o corpo da avaliação: `expected_revision` não negativo e
+  `facts` como snapshot completo, com `service_id`, `asset_id`, `impact`
+  e `urgency` opcionais. Campos omitidos substituem valores anteriores
+  por `NULL`.
+- Retornar `200` para avaliações completas e pendentes; usar `404` para
+  chamado inexistente, `422` para corpo, enum ou referência inválidos,
+  `409` para conflito de revisão ou estado e `503` para falhas de
+  persistência ou ausência de catálogo ativo.
+- Não expor operações de CRUD dos catálogos.
 - Integrar futuramente as operações controladas de complementação e
   reprocessamento.
-- Aplicar autenticação e autorização quando o ambiente exigir acesso
-    além do uso local.
+- Exigir autenticação e autorização antes de qualquer futura exposição
+  além do uso local.
 
 A API não deve concentrar regras de domínio complexas; deve delegar ao
-orquestrador e aos serviços internos. A triagem determinística atual é
-invocada diretamente por um serviço Python interno.
+orquestrador e aos serviços internos. A rota HTTP local funciona como
+adaptador e delega a avaliação ao serviço `evaluate_ticket`, que mantém
+as regras determinísticas, as transições de estado e a transação de
+persistência e auditoria.
 
 ### 4.2 Orquestrador
 
@@ -270,7 +282,8 @@ Regras:
 - A atualização do snapshot, da revisão, do estado e do evento de
   auditoria é atômica.
 - Um retry idêntico em `PENDENTE_INFORMACAO`, com a mesma versão ativa,
-  não duplica efeitos. Uma nova avaliação pendente usa a versão ativa.
+  não duplica efeitos. Se a versão ativa mudou, uma repetição idêntica
+  com a revisão atual reavalia o snapshot usando a nova versão.
 - Em `EM_TRIAGEM`, somente um retry com fatos idênticos é aceito; ele
   retorna a versão previamente persistida mesmo se outro catálogo estiver
   ativo. Fatos diferentes são rejeitados.
@@ -291,11 +304,12 @@ Regras:
 
 1. O cliente envia `POST /tickets`; a API valida e persiste o chamado em
    `NOVO`.
-2. Um chamador interno fornece os fatos estruturados, o identificador do
-   chamado e `expected_revision` ao serviço `evaluate_ticket`. Não há
-   endpoint público de classificação.
-3. O serviço bloqueia o chamado, verifica seu estado e revisão e carrega
-   o catálogo ativo.
+2. Um cliente local envia `POST /tickets/{ticket_id}/triage` com
+   `expected_revision` e `facts`. O corpo representa o snapshot completo;
+   campos de fato omitidos substituem valores anteriores por `NULL`.
+3. A rota valida o contrato HTTP e delega ao serviço
+   `evaluate_ticket`; o serviço bloqueia o chamado, verifica seu estado e
+   revisão e carrega o catálogo ativo.
 4. As regras validam referências e consistência do ativo, determinam se
    os fatos são suficientes e aplicam a matriz de prioridade e o
    mapeamento serviço-equipe.
@@ -304,7 +318,11 @@ Regras:
 6. Uma avaliação completa deixa o chamado em `EM_TRIAGEM`. Fatos
    incompletos ou conflitantes válidos deixam-no em
    `PENDENTE_INFORMACAO`, sem prioridade ou equipe.
-7. Uma futura integração poderá extrair fatos com LLM, consultar KEDB e
+7. Uma repetição pendente idêntica com o mesmo catálogo não duplica
+   efeitos; com uma nova versão ativa e a revisão atual, reavalia o
+   snapshot. Uma repetição idêntica em `EM_TRIAGEM` retorna o resultado e
+   a versão persistidos, mesmo após mudança do catálogo ativo.
+8. Uma futura integração poderá extrair fatos com LLM, consultar KEDB e
    atualizar um ITSM externo. Esses passos não fazem parte da fatia atual.
 
 ## 8. Resiliência e idempotência
@@ -339,10 +357,10 @@ reconciliará o estado remoto antes de iniciar uma nova operação lógica.
 
 Uma avaliação repetida de ticket pendente com os mesmos fatos e a mesma
 versão ativa retorna o resultado persistido sem incrementar a revisão ou
-duplicar a auditoria. Se a versão ativa mudou, uma nova avaliação usa
-essa versão. Em `EM_TRIAGEM`, somente um retry com fatos idênticos é
-aceito; ele retorna o resultado e a versão salvos, sem efeitos
-duplicados.
+duplicar a auditoria. Se a versão ativa mudou, uma repetição com a revisão
+atual avalia o snapshot na nova versão. Em `EM_TRIAGEM`, somente um retry
+com fatos idênticos é aceito; ele retorna o resultado e a versão salvos,
+independentemente do catálogo ativo, sem efeitos duplicados.
 
 ### 8.4 Recuperação futura de integração externa
 
@@ -386,10 +404,10 @@ defesa suficiente contra prompt injection.
 
 ### 9.3 API
 
-Autenticação, autorização, TLS, limites de requisição e exposição de
-endpoints deverão ser definidos de acordo com o ambiente de implantação.
-A API simulada não deve ser exposta publicamente sem controles
-adequados.
+A API atual é de desenvolvimento local, sem autenticação, e o servidor
+escuta em `127.0.0.1`. Não exponha os endpoints à rede pública. Qualquer
+acesso remoto futuro exige definir autenticação, autorização, TLS e
+limites de requisição antes da exposição.
 
 ## 10. Testes de confiabilidade
 
@@ -428,7 +446,8 @@ escopo inicial.
 - Definir como impacto e urgência serão extraídos de texto livre em uma
   fatia futura.
 - Definir provedor e modelo LLM.
-- Definir autenticação e autorização da API.
+- Definir autenticação e autorização caso a API venha a ser exposta além
+  do loopback.
 - Definir retenção e acesso aos eventos de auditoria.
 - Especificar o contrato de idempotência e o comportamento para
     payload divergente.

@@ -143,10 +143,10 @@ T3, T4, T5
 
 **Done when**:
 
-- [ ] The API layer is described as local-only and separate from the deterministic domain service.
-- [ ] Request revision, full-snapshot and retry behavior match the approved Spec.
-- [ ] No public-network access, LLM extraction or external integration is described as part of this feature.
-- [ ] Gate check passes: `pytest -v`.
+- [x] The API layer is described as local-only and separate from the deterministic domain service.
+- [x] Request revision, full-snapshot and retry behavior match the approved Spec.
+- [x] No public-network access, LLM extraction or external integration is described as part of this feature.
+- [x] Gate check passes: `pytest -v`.
 
 **Tests**: none
 **Gate**: build
