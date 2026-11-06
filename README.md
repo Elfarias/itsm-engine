@@ -178,6 +178,12 @@ implementação. A configuração deverá contemplar, no mínimo:
 - Configuração de injeção de falhas, habilitada somente em ambiente de
     teste.
 
+Para executar a API local de chamados, configure `DATABASE_URL` no
+arquivo `.env` com a conexão da role `itsm_runtime`. O servidor carrega
+esse arquivo e escuta em `127.0.0.1:8000` ao iniciar com
+`python -m app.main`; o PostgreSQL deve estar ativo e com as migrações
+aplicadas.
+
 ## Testes essenciais
 
 - Contratos e validação da API.

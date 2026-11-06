@@ -225,23 +225,25 @@ T7 -> T8
 ### T7: Creating tickets through the REST endpoint
 
 **What**: Implement `POST /tickets` to validate the request, call the atomic repository operation, return the created ticket, and map persistence failure to `503`.
-**Where**: `app/tickets/routes.py`
+**Where**: `app/tickets/routes.py`, router wiring in `app/main.py`, dotenv dependency in `pyproject.toml`, `DATABASE_URL` configuration in `.env.example` and `README.md`, and integration tests in `tests/integration/conftest.py` and `tests/integration/test_ticket_api.py`.
 **Depends on**: T1, T3, T5
 **Reuses**: The FastAPI application from T1, schemas from T3, and repository operation from T5.
 **Requirement**: TKT-01, TKT-02, TKT-03, TKT-04, TKT-05, TKT-06, TKT-07
 
 **Done when**:
 
-- [ ] A valid local request without authentication returns `201` with a UUID v4, status `NOVO`, UTC creation time, and submitted description.
-- [ ] Missing, blank, whitespace-only, and over-limit descriptions return `422` without persisting a ticket.
-- [ ] Repeating the same valid request creates distinct tickets.
-- [ ] An audit persistence failure returns `503` and leaves neither ticket nor audit event persisted.
-- [ ] Six route integration tests cover creation, invalid input, maximum length, duplicate requests, unauthenticated local access, and transaction failure.
-- [ ] Test count: 6 route integration tests pass.
+- [x] A valid local request without authentication returns `201` with a UUID v4, status `NOVO`, UTC creation time, and submitted description.
+- [x] Missing, blank, whitespace-only, and over-limit descriptions return `422` without persisting a ticket.
+- [x] Repeating the same valid request creates distinct tickets.
+- [x] An audit persistence failure returns `503` and leaves neither ticket nor audit event persisted.
+- [x] Six route integration tests cover creation, invalid input, maximum length, duplicate requests, unauthenticated local access, and transaction failure.
+- [x] Test count: 6 route integration tests pass.
 
 **Tests**: integration
 **Gate**: Full
 **Commit**: `feat(api): add ticket creation endpoint`
+**Status**: Complete
+**Gate result**: `pytest -v` - 18 passed.
 
 ---
 

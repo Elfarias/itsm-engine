@@ -7,6 +7,9 @@ from pathlib import Path
 
 import psycopg
 import pytest
+from fastapi.testclient import TestClient
+
+from app.main import app
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MIGRATION_PATH = PROJECT_ROOT / "migrations" / "001_tickets_and_audit.sql"
@@ -66,3 +69,14 @@ def migrated_database_roles(
     with psycopg.connect(owner_connection) as connection:
         connection.execute(migration)
     return owner_connection, runtime_connection
+
+
+@pytest.fixture
+def api_client(
+    migrated_database_roles: tuple[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> Iterator[TestClient]:
+    _, runtime_connection = migrated_database_roles
+    monkeypatch.setenv("DATABASE_URL", runtime_connection)
+    with TestClient(app) as client:
+        yield client
