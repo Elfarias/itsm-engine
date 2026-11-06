@@ -88,5 +88,5 @@ Proof: run tests | `tests/unit/test_project_progress.py::test_completed_dashboar
 ## Handoff
 
 **Settled during Specify**: User selected an unprioritized backlog and requested `PROJECT.md` be updated at the end of each delivery.
-**Dispatched**: Verifier pending after the final proof run; screens not applicable because no criterion cites a capture.
+**Verifier**: Independent verifier completed at `40f3a59`; PASS for C1-C4 with no findings. Screens not applicable because no criterion cites a capture.
 **Walked**: not applicable; this is a documentation tracker with no user-facing application screen.

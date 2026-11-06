@@ -2,7 +2,7 @@
 
 **Gathered:** 2026-11-06
 **Spec:** `.specs/features/project-progress-dashboard/spec.md`
-**Status:** Ready for specification approval
+**Status:** Decisions approved
 
 ---
 
