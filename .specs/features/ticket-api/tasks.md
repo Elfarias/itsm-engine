@@ -140,14 +140,16 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] The request schema accepts descriptions from 1 through 4,000 characters and rejects missing, blank, and whitespace-only descriptions and descriptions over 4,000 characters.
-- [ ] The response schema represents the identifier as UUID and includes description, status, and creation timestamp.
-- [ ] Four unit tests cover valid and invalid description boundaries and response fields.
-- [ ] Test count: 4 schema unit tests pass.
+- [x] The request schema accepts descriptions from 1 through 4,000 characters and rejects missing, blank, and whitespace-only descriptions and descriptions over 4,000 characters.
+- [x] The response schema represents the identifier as UUID and includes description, status, and creation timestamp.
+- [x] Four unit tests cover valid and invalid description boundaries and response fields.
+- [x] Test count: 4 schema unit tests pass.
 
 **Tests**: unit
 **Gate**: Quick
 **Commit**: `feat(tickets): define ticket API schemas`
+**Status**: Complete
+**Gate result**: `pytest -v` - 6 passed.
 
 ---
 
