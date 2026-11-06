@@ -78,17 +78,17 @@ The current triage API requires callers to provide structured facts, so it canno
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| LLM-01 | P1: Request a reviewable interpretation | Tasks | Pending |
-| LLM-02 | P1: Request a reviewable interpretation | Tasks | Pending |
-| LLM-03 | P1: Request a reviewable interpretation | Tasks | Pending |
-| LLM-04 | P1: Request a reviewable interpretation | Tasks | Pending |
-| LLM-05 | P1: Request a reviewable interpretation | Tasks | Pending |
-| LLM-06 | P1: Request a reviewable interpretation | Tasks | Pending |
-| LLM-07 | P1: Request a reviewable interpretation | Tasks | Pending |
-| LLM-08 | P1: Request a reviewable interpretation | Tasks | Pending |
-| LLM-09 | P1: Request a reviewable interpretation | Tasks | Pending |
-| LLM-10 | P1: Request a reviewable interpretation | Tasks | Pending |
-| LLM-11 | P1: Request a reviewable interpretation | Tasks | Pending |
+| LLM-01 | P1: Request a reviewable interpretation | Tasks | Complete |
+| LLM-02 | P1: Request a reviewable interpretation | Tasks | Complete |
+| LLM-03 | P1: Request a reviewable interpretation | Tasks | Complete |
+| LLM-04 | P1: Request a reviewable interpretation | Tasks | Complete |
+| LLM-05 | P1: Request a reviewable interpretation | Tasks | Complete |
+| LLM-06 | P1: Request a reviewable interpretation | Tasks | Complete |
+| LLM-07 | P1: Request a reviewable interpretation | Tasks | Complete |
+| LLM-08 | P1: Request a reviewable interpretation | Tasks | Complete |
+| LLM-09 | P1: Request a reviewable interpretation | Tasks | Complete |
+| LLM-10 | P1: Request a reviewable interpretation | Tasks | Complete |
+| LLM-11 | P1: Request a reviewable interpretation | Tasks | Complete |
 
 **Coverage:** 11 total, 11 mapped to the story, 0 unmapped.
 

@@ -7,11 +7,8 @@ VERIFIED_FEATURES = {
     "ticket-api": "API básica de chamados",
     "ticket-triage": "Triagem determinística",
     "ticket-triage-api": "API local de triagem determinística",
+    "llm-ticket-interpretation": "Interpretação de descrições em texto livre por LLM",
 }
-IN_PROGRESS_FEATURE = (
-    "llm-ticket-interpretation",
-    "Interpretação de descrições em texto livre por LLM",
-)
 
 
 def _dashboard_rows(project_text: str) -> list[str]:
@@ -61,9 +58,10 @@ def test_dashboard_lists_unprioritized_roadmap() -> None:
     assert any("procedimentos de correção" in row for row in planned_rows)
 
 
-def test_dashboard_lists_in_progress_interpretation_delivery() -> None:
+def test_dashboard_lists_verified_interpretation_delivery() -> None:
     project_text = PROJECT_DOCUMENT.read_text(encoding="utf-8")
-    feature, name = IN_PROGRESS_FEATURE
+    feature = "llm-ticket-interpretation"
+    name = VERIFIED_FEATURES[feature]
     feature_rows = [
         row
         for row in _dashboard_rows(project_text)
@@ -73,18 +71,17 @@ def test_dashboard_lists_in_progress_interpretation_delivery() -> None:
     assert len(feature_rows) == 1
     row = feature_rows[0]
     assert name in row
-    assert "Em andamento" in row
-    assert "aguardando verificação independente" in row
+    assert "Concluída e verificada" in row
     assert f".specs/features/{feature}/tasks.md" in row
     assert f".specs/features/{feature}/verification.md" in row
-    active_status = next(
-        line
-        for line in project_text.splitlines()
-        if line.startswith("**Em andamento:**")
+    assert "**Em andamento:** nenhuma entrega registrada." in project_text
+    feature_root = PROJECT_ROOT / ".specs" / "features" / feature
+    assert (feature_root / "spec.md").is_file()
+    assert (feature_root / "tasks.md").is_file()
+    verification_text = (feature_root / "verification.md").read_text(
+        encoding="utf-8"
     )
-    assert name.casefold() in active_status.casefold()
-    assert (PROJECT_ROOT / ".specs" / "features" / feature / "spec.md").is_file()
-    assert (PROJECT_ROOT / ".specs" / "features" / feature / "tasks.md").is_file()
+    assert "**Verdict**: PASS" in verification_text
 
 
 def test_dashboard_requires_same_commit_updates() -> None:

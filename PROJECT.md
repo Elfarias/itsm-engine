@@ -2,7 +2,7 @@
 
 **Nome do projeto:** ITSM Agent
 **Versão do documento:** 1.0
-**Status:** Acompanhamento centralizado; interpretação por LLM em implantação
+**Status:** Acompanhamento centralizado; interpretação por LLM concluída e verificada
 **Idioma:** Português (Brasil)
 
 ## 1. Visão geral
@@ -54,9 +54,9 @@ IA.
 | API básica de chamados | Concluída e verificada | Criar e consultar chamados com persistência PostgreSQL e auditoria. | [Spec](.specs/features/ticket-api/spec.md) | [Tarefas](.specs/features/ticket-api/tasks.md) | [Verificação](.specs/features/ticket-api/verification.md) |
 | Triagem determinística | Concluída e verificada | Catálogos versionados, regras de prioridade e roteamento, controle de revisão, estados e auditoria transacional. | [Spec](.specs/features/ticket-triage/spec.md) | [Tarefas](.specs/features/ticket-triage/tasks.md) | [Verificação](.specs/features/ticket-triage/verification.md) |
 | API local de triagem determinística | Concluída e verificada | Avaliar chamados existentes por fatos estruturados na rota local. | [Spec](.specs/features/ticket-triage-api/spec.md) | [Tarefas](.specs/features/ticket-triage-api/tasks.md) | [Verificação](.specs/features/ticket-triage-api/verification.md) |
-| Interpretação de descrições em texto livre por LLM | Em andamento; aguardando verificação independente | OpenRouter propõe fatos estruturados a partir da descrição salva, sem alterar o chamado. | [Spec](.specs/features/llm-ticket-interpretation/spec.md) | [Tarefas](.specs/features/llm-ticket-interpretation/tasks.md) | [Verificação](.specs/features/llm-ticket-interpretation/verification.md) |
+| Interpretação de descrições em texto livre por LLM | Concluída e verificada | OpenRouter propõe fatos estruturados a partir da descrição salva, sem alterar o chamado. | [Spec](.specs/features/llm-ticket-interpretation/spec.md) | [Tarefas](.specs/features/llm-ticket-interpretation/tasks.md) | [Verificação](.specs/features/llm-ticket-interpretation/verification.md) |
 
-**Em andamento:** interpretação de descrições em texto livre por LLM, aguardando verificação independente.
+**Em andamento:** nenhuma entrega registrada.
 
 **Regra de atualização:** ao concluir cada entrega ou alterar seu status, atualize esta tabela e o backlog no `PROJECT.md` no mesmo commit da entrega.
 

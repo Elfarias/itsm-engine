@@ -280,8 +280,11 @@ Proof: run tests | `tests/unit/test_interpretation_docs.py::test_readme_document
 **C14** - Architecture docs preserve the separation between LLM proposals and deterministic decisions, including provider boundaries, timeout, validation, and no retry (LLM-04, LLM-06, LLM-08, LLM-11)
 Proof: run tests | `tests/unit/test_interpretation_docs.py::test_architecture_documents_provider_and_deterministic_boundaries PASSED`
 
-**C15** - The centralized project progress tracker records this feature as in progress with evidence links (LLM-01)
-Proof: run tests | `tests/unit/test_project_progress.py::test_dashboard_lists_in_progress_interpretation_delivery PASSED`
+**C15** - The centralized project progress tracker links this feature's Spec, task checklist, and verification report (LLM-01)
+Proof: run tests | `tests/unit/test_project_progress.py::test_dashboard_lists_verified_interpretation_delivery PASSED`
+
+**C16** - After independent verification passes, the centralized project tracker marks the feature complete and links its passing verification report (LLM-01)
+Proof: run tests | `tests/unit/test_project_progress.py::test_dashboard_lists_verified_interpretation_delivery PASSED`
 
 ---
 
@@ -289,7 +292,7 @@ Proof: run tests | `tests/unit/test_project_progress.py::test_dashboard_lists_in
 
 **Settled during Specify**: User chose proposal-first workflow, OpenRouter, description-only provider data, `OPENROUTER_MODEL` configuration, partial proposals with explicit errors, stored ticket descriptions, no automatic retries, no catalog context, and no numeric confidence score.
 **Settled during Design**: User selected a synchronous route, dedicated service, and standard-library HTTP client.
-**Dispatched**: none.
+**Dispatched**: Verifier 1 returned PASS at HEAD `dd8e77e`; final-state Verifier pending dispatch after proofs; no screens review (no capture-bound criteria).
 **Walked**: not applicable; this feature adds a local API without a user-facing screen.
 
 ## Phase Execution Map

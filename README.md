@@ -3,8 +3,8 @@
 Plataforma de Triagem Inteligente de Incidentes de TI com IA, regras
 determinísticas, integração controlada e resiliência.
 
-> **Status:** API mínima de chamados e triagem determinística implementadas.
-> Interpretação por LLM em implantação; integração ITSM externa no roadmap.
+> **Status:** API mínima de chamados, triagem determinística e interpretação
+> por LLM implementadas; integração ITSM externa no roadmap.
 
 ## Visão geral
 
