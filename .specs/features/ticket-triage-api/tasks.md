@@ -179,7 +179,7 @@ T3, T4, T5
 **Run tests**: `pytest -v`
 
 **C1** - The request accepts a nonnegative integer revision and optional facts fields as a complete snapshot (TRIAPI-01, AC 1)
-Proof: run tests | `tests/unit/test_triage_api_schemas.py::test_triage_request_accepts_complete_and_partial_facts PASSED`
+Proof: run tests | `tests/unit/test_triage_api_schemas.py::test_triage_request_validates_revision_and_complete_partial_facts PASSED`
 
 **C2** - A successful evaluation returns all specified response fields with HTTP 200 (TRIAPI-02, AC 2)
 Proof: run tests | `tests/integration/test_triage_api.py::test_complete_triage_returns_persisted_result PASSED`

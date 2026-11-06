@@ -5,7 +5,7 @@ from app.triage.api_schemas import TicketTriageRequest
 from app.triage.schemas import Impact, Urgency
 
 
-def test_triage_request_accepts_complete_and_partial_facts() -> None:
+def test_triage_request_validates_revision_and_complete_partial_facts() -> None:
     complete = TicketTriageRequest.model_validate(
         {
             "expected_revision": 0,
@@ -31,6 +31,11 @@ def test_triage_request_accepts_complete_and_partial_facts() -> None:
     assert partial.facts.asset_id is None
     assert partial.facts.impact is Impact.MEDIO
     assert partial.facts.urgency is None
+    for invalid_revision in (True, False, 1.0, "1"):
+        with pytest.raises(ValidationError):
+            TicketTriageRequest.model_validate(
+                {"expected_revision": invalid_revision, "facts": {}}
+            )
 
 
 def test_triage_request_requires_facts_and_nonnegative_revision() -> None:
