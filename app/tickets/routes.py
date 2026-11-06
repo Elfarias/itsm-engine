@@ -7,6 +7,13 @@ from fastapi import APIRouter, HTTPException, status
 from app.tickets.repository import create_ticket, get_ticket
 from app.tickets.schemas import TicketCreate, TicketResponse
 from app.triage.api_schemas import TicketTriageRequest
+from app.triage.interpretation import interpret_description
+from app.triage.interpretation_schemas import TicketInterpretationResponse
+from app.triage.openrouter_client import (
+    OpenRouterConfigurationError,
+    OpenRouterInvalidResponse,
+    OpenRouterUnavailable,
+)
 from app.triage.schemas import (
     CatalogConfigurationError,
     InvalidTriageFacts,
@@ -43,6 +50,44 @@ def read_ticket(ticket_id: UUID) -> TicketResponse:
             detail="Ticket not found",
         )
     return ticket
+
+
+@router.post(
+    "/tickets/{ticket_id}/interpretation",
+    response_model=TicketInterpretationResponse,
+)
+def post_ticket_interpretation(ticket_id: UUID) -> TicketInterpretationResponse:
+    try:
+        ticket = get_ticket(os.environ["DATABASE_URL"], ticket_id)
+    except psycopg.Error as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Ticket interpretation unavailable",
+        ) from error
+
+    if ticket is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found",
+        )
+
+    try:
+        proposal = interpret_description(ticket.description)
+    except (OpenRouterConfigurationError, OpenRouterUnavailable) as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Ticket interpretation unavailable",
+        ) from error
+    except OpenRouterInvalidResponse as error:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Ticket interpretation returned an invalid provider response",
+        ) from error
+
+    return TicketInterpretationResponse(
+        ticket_id=ticket.id,
+        **proposal.model_dump(),
+    )
 
 
 @router.post("/tickets/{ticket_id}/triage")

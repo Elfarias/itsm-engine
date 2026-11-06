@@ -152,15 +152,17 @@ T4 → T7
 
 **Done when**:
 
-- [ ] The endpoint returns the specified proposal for an existing ticket and returns `404` before contacting the provider for a missing ticket.
-- [ ] Missing config/provider availability/timeout/rate limit map to `503`; invalid provider output maps to `502`.
-- [ ] Integration tests assert ticket fields, revision, classification, and audit events remain unchanged on both valid proposals and failures.
-- [ ] The loopback-only runtime test remains green; no public-interface binding is introduced.
-- [ ] Gate check passes: `pytest -v`.
+- [x] The endpoint returns the specified proposal for an existing ticket and returns `404` before contacting the provider for a missing ticket.
+- [x] Missing config/provider availability/timeout/rate limit map to `503`; invalid provider output maps to `502`.
+- [x] Integration tests assert ticket fields, revision, classification, and audit events remain unchanged on both valid proposals and failures.
+- [x] The loopback-only runtime test remains green; no public-interface binding is introduced.
+- [x] Gate check passes: `pytest -v`.
 
 **Tests**: integration
 **Gate**: full
 **Commit**: `feat(api): expose local ticket interpretation`
+**Status**: Complete
+**Gate result**: `pytest -v` - 76 passed, 1 pre-existing Starlette deprecation warning.
 
 ---
 
@@ -245,25 +247,34 @@ Proof: run tests | `tests/unit/test_interpretation_service.py::test_service_retu
 **C5** - The prompt treats descriptions as untrusted text and contains no ticket identifiers or catalog data (LLM-01, LLM-11)
 Proof: run tests | `tests/unit/test_interpretation_service.py::test_service_treats_description_as_untrusted_without_other_ticket_data PASSED`
 
-**C6** - The route returns `404` without a provider call for a missing ticket and returns valid proposals for existing tickets (LLM-01, LLM-02, LLM-03)
+**C6** - The route returns a proposal from the persisted description without changing ticket or audit state (LLM-01, LLM-03, LLM-06)
 Proof: run tests | `tests/integration/test_ticket_interpretation_api.py::test_interpretation_returns_proposal_for_existing_ticket PASSED`
 
-**C7** - Provider errors map to explicit HTTP responses and ticket/audit state remains unchanged (LLM-06, LLM-08, LLM-09)
-Proof: run tests | `tests/integration/test_ticket_interpretation_api.py::test_provider_failures_return_errors_without_ticket_or_audit_changes PASSED`
+**C7** - Missing tickets return `404` and database lookup failures return `503`, both before contacting the provider (LLM-02)
+Proof: run tests | `tests/integration/test_ticket_interpretation_api.py::test_missing_and_unavailable_ticket_lookups_return_without_provider_call PASSED`
 
-**C8** - Interpretation remains available only through the loopback-bound local server (LLM-10)
-Proof: run tests | `tests/integration/test_app_runtime.py::test_server_binds_to_loopback_only PASSED`
+**C8** - Missing provider configuration maps to `503` without changing the ticket or audit state (LLM-06, LLM-07)
+Proof: run tests | `tests/integration/test_ticket_interpretation_api.py::test_provider_failures_return_errors_without_ticket_or_audit_changes[OpenRouterConfigurationError-503-Ticket interpretation unavailable] PASSED`
 
-**C9** - Interpretation does not log descriptions, prompts, provider responses, or keys (LLM-11)
+**C9** - Provider availability failures map to `503` without changing the ticket or audit state (LLM-06, LLM-08)
+Proof: run tests | `tests/integration/test_ticket_interpretation_api.py::test_provider_failures_return_errors_without_ticket_or_audit_changes[OpenRouterUnavailable-503-Ticket interpretation unavailable] PASSED`
+
+**C10** - Invalid provider output maps to `502` without changing the ticket or audit state (LLM-06, LLM-09)
+Proof: run tests | `tests/integration/test_ticket_interpretation_api.py::test_provider_failures_return_errors_without_ticket_or_audit_changes[OpenRouterInvalidResponse-502-Ticket interpretation returned an invalid provider response] PASSED`
+
+**C11** - Interpretation does not log descriptions, prompts, provider responses, or keys (LLM-11)
 Proof: run tests | `tests/integration/test_ticket_interpretation_api.py::test_interpretation_does_not_log_sensitive_content PASSED`
 
-**C10** - README documents the local proposal-first flow and required configuration (LLM-01, LLM-06, LLM-07, LLM-10)
+**C12** - Interpretation remains available only through the loopback-bound local server (LLM-10)
+Proof: run tests | `tests/integration/test_app_runtime.py::test_server_binds_to_loopback_only PASSED`
+
+**C13** - README documents the local proposal-first flow and required configuration (LLM-01, LLM-06, LLM-07, LLM-10)
 Proof: run tests | `tests/unit/test_interpretation_docs.py::test_readme_documents_local_proposal_flow_and_configuration PASSED`
 
-**C11** - Architecture docs preserve the separation between LLM proposals and deterministic decisions (LLM-04, LLM-06, LLM-11)
+**C14** - Architecture docs preserve the separation between LLM proposals and deterministic decisions (LLM-04, LLM-06, LLM-11)
 Proof: run tests | `tests/unit/test_interpretation_docs.py::test_architecture_documents_provider_and_deterministic_boundaries PASSED`
 
-**C12** - The centralized project progress tracker records this feature as in progress with evidence links (LLM-01)
+**C15** - The centralized project progress tracker records this feature as in progress with evidence links (LLM-01)
 Proof: run tests | `tests/unit/test_project_progress.py::test_dashboard_lists_in_progress_interpretation_delivery PASSED`
 
 ---

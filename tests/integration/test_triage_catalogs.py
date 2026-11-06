@@ -224,5 +224,6 @@ def test_public_api_exposes_no_catalog_admin_routes(api_client: TestClient) -> N
     assert operations == {
         "/tickets": {"post"},
         "/tickets/{ticket_id}": {"get"},
+        "/tickets/{ticket_id}/interpretation": {"post"},
         "/tickets/{ticket_id}/triage": {"post"},
     }
