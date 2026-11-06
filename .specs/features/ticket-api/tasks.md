@@ -317,7 +317,7 @@ Proof: run tests | tests/integration/test_ticket_api.py::test_get_invalid_uuid_r
 ## Handoff
 
 **Settled mid-build**: User confirmed unit and integration tests with `pytest -v`; user chose `postgres:17-alpine` for local Compose, saying "postgres_image=postgres:17-alpine".
-**Dispatched**: none.
+**Dispatched**: Independent Verifier completed at HEAD `6b4b7d3`; screens review not applicable because no criterion cites a capture.
 **Walked**: not started.
 
 ## Phase Execution Map
