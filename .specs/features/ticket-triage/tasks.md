@@ -112,6 +112,7 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 **Tests**: unit
 **Gate**: quick
 **Commit**: `feat(triage): define domain schemas`
+**Commit hash**: `22780a2`
 **Gate result**: `pytest -v tests/unit` - 6 passed; phase build `pytest -v` - 27 passed, 1 pre-existing deprecation warning.
 **Status**: Complete
 
@@ -127,16 +128,18 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 
 **Done when**:
 
-- [ ] Priority calculation matches all nine impact/urgency combinations in TRI-03.
-- [ ] Complete facts produce the matrix priority and only the catalog-mapped team.
-- [ ] Missing required facts, missing team mapping and an asset/service mismatch produce pending decisions with no priority or target team.
-- [ ] Unit tests cover every rule branch and the listed rule edge cases.
-- [ ] Test count: 4 triage-rule unit tests pass.
-- [ ] Gate check passes: `pytest -v tests/unit`.
+- [x] Priority calculation matches all nine impact/urgency combinations in TRI-03.
+- [x] Complete facts produce the matrix priority and only the catalog-mapped team.
+- [x] Missing required facts, missing team mapping and an asset/service mismatch produce pending decisions with no priority or target team.
+- [x] Unit tests cover every rule branch and the listed rule edge cases.
+- [x] Test count: 4 triage-rule unit tests pass.
+- [x] Gate check passes: `pytest -v tests/unit`.
 
 **Tests**: unit
 **Gate**: quick
 **Commit**: `feat(triage): implement deterministic rules`
+**Gate result**: `pytest -v tests/unit` - 10 passed.
+**Status**: Complete
 
 ---
 
@@ -263,10 +266,10 @@ Proof: run tests | tests/integration/test_triage_catalogs.py::test_public_api_ex
 Proof: run tests | tests/unit/test_triage_rules.py::test_priority_matrix_covers_all_nine_combinations PASSED
 
 **C4** - Complete valid facts return the priority specified by the matrix (TRI-04, AC 4)
-Proof: run tests | tests/unit/test_triage_rules.py::test_complete_facts_calculate_priority PASSED
+Proof: run tests | tests/unit/test_triage_rules.py::test_complete_facts_calculate_priority_and_use_catalog_mapped_team PASSED
 
 **C5** - The service mapping, not caller input, determines the target team (TRI-05, AC 5)
-Proof: run tests | tests/unit/test_triage_rules.py::test_complete_facts_use_catalog_mapped_team PASSED
+Proof: run tests | tests/unit/test_triage_rules.py::test_complete_facts_calculate_priority_and_use_catalog_mapped_team PASSED
 
 **C6** - A complete evaluation persists its facts, priority and mapped team and leaves the ticket in `EM_TRIAGEM` (TRI-06, AC 6)
 Proof: run tests | tests/integration/test_triage_service.py::test_complete_evaluation_persists_snapshot_and_em_triagem PASSED
