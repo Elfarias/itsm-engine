@@ -87,6 +87,7 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 **Tests**: integration
 **Gate**: full
 **Commit**: `feat(db): add versioned triage catalogs`
+**Commit hash**: `2388139`
 **Gate result**: `pytest -v` - 25 passed, 1 pre-existing deprecation warning.
 **Status**: Complete
 
@@ -102,15 +103,17 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 
 **Done when**:
 
-- [ ] Fact snapshots represent optional service and asset facts and required impact/urgency enum values without accepting caller-selected priority or team.
-- [ ] Invalid impact and urgency values are rejected before evaluation.
-- [ ] Unit tests cover valid snapshots, optional assets and invalid enum values.
-- [ ] Test count: 2 triage-schema unit tests pass.
-- [ ] Gate check passes: `pytest -v tests/unit`.
+- [x] Fact snapshots allow absent service, asset, impact and urgency facts; supplied impact/urgency values use closed enums, and caller-selected priority or team fields are rejected.
+- [x] Invalid impact and urgency values are rejected before evaluation.
+- [x] Unit tests cover valid snapshots, optional assets and invalid enum values.
+- [x] Test count: 2 triage-schema unit tests pass.
+- [x] Gate check passes: `pytest -v tests/unit`.
 
 **Tests**: unit
 **Gate**: quick
 **Commit**: `feat(triage): define domain schemas`
+**Gate result**: `pytest -v tests/unit` - 6 passed; phase build `pytest -v` - 27 passed, 1 pre-existing deprecation warning.
+**Status**: Complete
 
 ---
 

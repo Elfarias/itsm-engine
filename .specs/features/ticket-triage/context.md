@@ -2,7 +2,7 @@
 
 **Gathered:** 2026-11-06
 **Spec:** `.specs/features/ticket-triage/spec.md`
-**Status:** T1 complete; ready to execute T2
+**Status:** T2 complete; ready to execute T3
 
 ---
 
