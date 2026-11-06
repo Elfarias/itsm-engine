@@ -3,21 +3,22 @@
 Plataforma de Triagem Inteligente de Incidentes de TI com IA, regras
 determinísticas, integração controlada e resiliência.
 
-> **Status:** API mínima de chamados e fatia de triagem determinística
-> implementadas. Interpretação por LLM e integração ITSM externa são
-> etapas futuras.
+> **Status:** API mínima de chamados e triagem determinística implementadas.
+> Interpretação por LLM em implantação; integração ITSM externa no roadmap.
 
 ## Visão geral
 
 O ITSM Agent recebe chamados pela API e oferece um serviço interno de
-triagem determinística. O serviço avalia fatos estruturados com
+triagem determinística. Uma rota local também pode extrair uma proposta
+revisável da descrição salva do chamado. A interpretação não altera o
+chamado nem substitui a triagem determinística. O serviço de triagem avalia fatos estruturados com
 catálogos sintéticos versionados, calcula a prioridade pela matriz
 aprovada e seleciona a equipe pelo mapeamento do serviço. A triagem pode
 ser iniciada pela rota local `POST /tickets/{ticket_id}/triage`; o
 servidor permanece ligado somente a `127.0.0.1` e não expõe a rota à
 rede pública.
 
-LLM, KEDB e integração ITSM externa permanecem no roadmap.
+Consultas à KEDB e integração ITSM externa permanecem no roadmap.
 
 ## Objetivos
 
@@ -35,12 +36,14 @@ LLM, KEDB e integração ITSM externa permanecem no roadmap.
 Cliente
         |
         v
-FastAPI: criar / consultar chamados e iniciar triagem local
+FastAPI: criar / consultar chamados, propor interpretação e iniciar triagem
         |
         v
  PostgreSQL: chamados
         |
-Chamador interno com fatos estruturados
+Interpretação local: descrição salva -> OpenRouter
+        |
+Chamador local revisa a proposta e resolve fatos estruturados
         |
         v
  Serviço interno de triagem
@@ -51,7 +54,7 @@ Chamador interno com fatos estruturados
         |
         +----> Auditoria transacional
 
-Futuro: LLM / KEDB / integração ITSM externa
+Futuro: consultas à KEDB / integração ITSM externa
 ```
 
 ## Stack principal
@@ -61,7 +64,8 @@ Futuro: LLM / KEDB / integração ITSM externa
 - Pydantic
 - PostgreSQL
 - Docker e Docker Compose
-- LLM e retry de integração externa (etapas futuras)
+- OpenRouter para propostas de interpretação; integração ITSM externa e
+  retries permanecem no roadmap
 
 Não fazem parte da primeira versão: Kubernetes, Kafka, Redis, PGVector e
 arquitetura de microsserviços.
@@ -102,8 +106,9 @@ e decisões.
    idênticos não duplicam efeitos; revisões concorrentes desatualizadas
    geram conflito explícito.
 
-Extração por LLM, consulta à KEDB e atualização de um ITSM externo não
-fazem parte do fluxo atual.
+A proposta por LLM é uma operação separada: não altera o fluxo de triagem,
+não grava fatos e não cria eventos de auditoria. Consultas à KEDB e
+atualização de um ITSM externo não fazem parte do fluxo atual.
 
 ## API local de triagem
 
@@ -146,6 +151,37 @@ caminho, corpo, enum ou referência de catálogo inválidos, `409` para
 revisão desatualizada ou estado incompatível, e `503` para falha de
 persistência ou ausência de catálogo ativo. A rota não exige autenticação
 e deve ser usada somente no servidor local; não a exponha à rede pública.
+
+## Interpretação local por LLM
+
+Configure `OPENROUTER_API_KEY` e `OPENROUTER_MODEL` no arquivo `.env`.
+Esses valores não devem ser incluídos na requisição. Com um chamado já
+criado, solicite uma proposta sem enviar outro corpo ou uma descrição:
+
+```powershell
+$proposal = Invoke-RestMethod -Method Post `
+  -Uri "http://127.0.0.1:8000/tickets/$($ticket.id)/interpretation"
+
+$proposal
+```
+
+A API carrega a descrição já persistida e envia somente esse texto como dado
+do chamado ao OpenRouter. O provedor não recebe o ID, outros campos do
+chamado ou dados do catálogo. A resposta contém candidatos textuais de
+serviço e ativo, impacto, urgência, sintomas, evidências, informações
+ausentes, incertezas e resumo técnico. Campos não determinados podem ficar
+nulos.
+
+A proposta serve para revisão; ela não é persistida, não muda o estado,
+classificação, revisão ou auditoria do chamado e não calcula prioridade
+nem equipe. Depois de revisar e resolver os fatos, solicite separadamente
+a triagem determinística em `POST /tickets/{ticket_id}/triage`.
+
+A rota é local e não exige autenticação. Use-a somente com o servidor
+ligado a `127.0.0.1`; não a exponha à rede pública. Ela retorna `404`
+para um chamado inexistente, `503` se a configuração estiver ausente ou
+o provedor estiver indisponível, expirar ou limitar a chamada, e `502`
+se a resposta do provedor for inválida. Não há retry automático.
 
 ## Estados do chamado
 
@@ -194,8 +230,7 @@ sem alterar as responsabilidades arquiteturais.
 - Docker Engine ou Docker Desktop com Docker Compose.
 - Python na versão definida no ambiente do projeto, caso a execução
     local fora de containers seja necessária.
-- Acesso a um provedor de LLM por API apenas quando essa integração
-  futura for implementada.
+- Acesso à API OpenRouter apenas para usar a rota de interpretação.
 - Arquivo de configuração local baseado em `.env.example`.
 
 ## Configuração
@@ -215,16 +250,11 @@ repositório.
 
 ## Configurações esperadas
 
-Os nomes definitivos das variáveis serão estabelecidos durante a
-implementação. A configuração deverá contemplar, no mínimo:
-
-- Ambiente de execução.
-- URL e credenciais do PostgreSQL.
-- Endpoint, modelo e chave do provedor LLM (etapa futura).
-- Timeout de chamadas externas.
-- Limite de tentativas e parâmetros de backoff.
-- Configuração de injeção de falhas, habilitada somente em ambiente de
-    teste.
+Configure `DATABASE_URL` com a conexão da role `itsm_runtime`. Para
+interpretação, configure também `OPENROUTER_API_KEY` e
+`OPENROUTER_MODEL`. Mantenha o arquivo `.env` fora do controle de versão
+e não inclua esses valores em chamadas à API. Configurações de retry e
+backoff serão definidas para a futura integração ITSM externa.
 
 Para executar a API local de chamados, configure `DATABASE_URL` no
 arquivo `.env` com a conexão da role `itsm_runtime`. O servidor carrega
@@ -239,18 +269,18 @@ aplicadas.
 - Dados insuficientes e estado pendente.
 - Matriz de prioridade, roteamento e reavaliação de snapshots.
 - Retry idempotente, conflito de revisão e auditoria transacional.
-- Extração estruturada, resposta inválida do LLM e integração externa
-  (etapas futuras).
+- Propostas estruturadas, respostas inválidas do LLM e fronteiras de
+  dados da interpretação.
 - Timeout, HTTP 500, resposta perdida e chave de idempotência em
   integração externa (etapa futura).
 - Execuções concorrentes sobre o mesmo chamado.
-- Prompt injection em descrições e documentos recuperados (futura
-  integração LLM).
+- Descrições de chamados como entrada não confiável para interpretação.
 - Permissões de escrita e restrições da auditoria.
 
 ## Segurança
 
-- Quando integrado, o LLM não acessará diretamente o banco de dados.
+- O LLM recebe somente a descrição persistida como dado do chamado e não
+  acessa diretamente o banco de dados.
 - Ferramentas possuem escopo mínimo e argumentos validados.
 - Conteúdo de chamados e documentos recuperados é tratado como dado
     não confiável.
@@ -271,7 +301,7 @@ automática a ambiente crítico.
 
 ## Próximos passos
 
-1. Implementar extração estruturada de fatos com LLM e consultas à KEDB.
+1. Implementar consultas à KEDB.
 2. Implementar integração ITSM externa com retry, timeout e idempotência.
 3. Definir interfaces de complementação de chamados e experiência dos
    operadores.

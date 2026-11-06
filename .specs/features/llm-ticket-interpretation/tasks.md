@@ -176,15 +176,17 @@ T4 → T7
 
 **Done when**:
 
-- [ ] The example shows how to request a proposal without sending a description or secret in the request.
-- [ ] Documentation states that proposals are not persisted and the existing deterministic triage call remains separate.
-- [ ] Provider configuration and errors match the Spec.
-- [ ] A documentation contract test verifies these statements.
-- [ ] Gate check passes: `pytest -v`.
+- [x] The example shows how to request a proposal without sending a description or secret in the request.
+- [x] Documentation states that proposals are not persisted and the existing deterministic triage call remains separate.
+- [x] Provider configuration and errors match the Spec.
+- [x] A documentation contract test verifies these statements.
+- [x] Gate check passes: `pytest -v`.
 
 **Tests**: unit
 **Gate**: build
 **Commit**: `docs(readme): describe local LLM interpretation`
+**Status**: Complete
+**Gate result**: `pytest -v` - 77 passed, 1 pre-existing Starlette deprecation warning.
 
 ---
 
