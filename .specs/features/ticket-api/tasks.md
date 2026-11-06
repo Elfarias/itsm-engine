@@ -186,14 +186,16 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] A successful repository operation commits the ticket and exactly one linked creation audit event.
-- [ ] A failure inserting the audit event rolls back the ticket and the event.
-- [ ] Two PostgreSQL integration tests prove transaction success and rollback.
-- [ ] Test count: 2 repository transaction integration tests pass.
+- [x] A successful repository operation commits the ticket and exactly one linked creation audit event.
+- [x] A failure inserting the audit event rolls back the ticket and the event.
+- [x] Two PostgreSQL integration tests prove transaction success and rollback.
+- [x] Test count: 2 repository transaction integration tests pass.
 
 **Tests**: integration
 **Gate**: Full
 **Commit**: `feat(tickets): persist ticket and audit event atomically`
+**Status**: Complete
+**Gate result**: `pytest -v` - 10 passed.
 
 ---
 
