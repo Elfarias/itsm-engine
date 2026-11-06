@@ -207,14 +207,16 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 
 **Done when**:
 
-- [ ] Catalog tables, active-version behavior, revision conflicts, state outcomes and audit details agree with the approved Spec and implementation.
-- [ ] The documented priority matrix matches all nine combinations in TRI-03.
-- [ ] No public classification endpoint, CRUD interface, LLM or KEDB is described as part of this feature.
-- [ ] Documentation is reviewed against the implementation; no test is required for this documentation-only task.
+- [x] Catalog tables, active-version behavior, revision conflicts, state outcomes and audit details agree with the approved Spec and implementation.
+- [x] The documented priority matrix matches all nine combinations in TRI-03.
+- [x] No public classification endpoint, CRUD interface, LLM or KEDB is described as part of this feature.
+- [x] Documentation is reviewed against the implementation; no test is required for this documentation-only task.
 
 **Tests**: none
 **Gate**: build
 **Commit**: `docs(architecture): document deterministic triage`
+**Gate result**: `pytest -v` - 43 passed, 1 pre-existing deprecation warning.
+**Status**: Complete
 
 ---
 
@@ -316,7 +318,7 @@ Proof: run tests | tests/integration/test_triage_service.py::test_em_triagem_ret
 
 The feature's live state, written as it happens - a compaction gives no warning.
 
-**Settled mid-build**: none; T1-T5 complete, next is T6.
+**Settled mid-build**: none; T1-T6 complete, next is T7.
 **Dispatched**: none; 8 tasks fit within one inline batch.
 **Walked**: not yet; no user-facing screen or public classification API is in scope.
 

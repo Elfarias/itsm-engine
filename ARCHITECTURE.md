@@ -8,9 +8,12 @@
 Este documento descreve a arquitetura lógica e técnica da Plataforma de
 Triagem Inteligente de Incidentes de TI (ITSM Agent).
 
-A solução combina interpretação probabilística por LLM com validações e
-decisões determinísticas na aplicação. O desenho prioriza simplicidade
-operacional, rastreabilidade e recuperação controlada de falhas.
+A arquitetura-alvo combina interpretação probabilística por LLM com
+validações e decisões determinísticas na aplicação. A fatia atual
+implementa a persistência de chamados, catálogos versionados e regras
+determinísticas internas, sem integração LLM ou ITSM externo. O desenho
+prioriza simplicidade operacional, rastreabilidade e recuperação
+controlada de falhas.
 
 ## 2. Princípios arquiteturais
 
@@ -41,8 +44,12 @@ flowchart TD
     AUDIT --> DB
 ```
 
-O LLM é um serviço externo consumido pela aplicação. Ele não recebe
-credenciais do banco e não executa SQL nem chamadas arbitrárias.
+    O diagrama representa a arquitetura-alvo. Nesta fatia, o fluxo
+    implementado termina no serviço interno de triagem e no PostgreSQL.
+
+    O LLM é uma integração futura consumida pela aplicação. Ele não recebe
+credenciais do banco e não executa SQL nem chamadas arbitrárias. A fatia
+atual recebe fatos estruturados e não chama um LLM.
 
 ## 4. Componentes
 
@@ -50,22 +57,25 @@ credenciais do banco e não executa SQL nem chamadas arbitrárias.
 
 Responsabilidades:
 
-- Expor endpoints REST.
+- Expor endpoints REST para criar e consultar chamados.
 - Validar contratos de entrada e saída.
-- Criar e consultar chamados.
-- Acionar o fluxo de triagem.
-- Expor operações controladas de complementação e reprocessamento.
+- Não expor nesta fatia uma rota pública de classificação nem operações de
+  CRUD dos catálogos.
+- Integrar futuramente as operações controladas de complementação e
+  reprocessamento.
 - Aplicar autenticação e autorização quando o ambiente exigir acesso
     além do uso local.
 
 A API não deve concentrar regras de domínio complexas; deve delegar ao
-orquestrador e aos serviços internos.
+orquestrador e aos serviços internos. A triagem determinística atual é
+invocada diretamente por um serviço Python interno.
 
 ### 4.2 Orquestrador
 
-Coordena o fluxo de triagem e controla a sequência de execução.
+Na arquitetura-alvo, coordena o fluxo de triagem e controla a sequência
+de execução. A fatia atual ainda não integra um orquestrador.
 
-Responsabilidades:
+Responsabilidades futuras:
 
 - Iniciar e acompanhar uma execução.
 - Solicitar interpretação ao LLM.
@@ -75,12 +85,13 @@ Responsabilidades:
 - Coordenar integração, retry e tratamento de falhas.
 - Registrar eventos relevantes.
 
-O fluxo é explícito e limitado. Não haverá planejamento aberto nem ciclo
-autônomo ilimitado do agente.
+O fluxo futuro será explícito e limitado. Não haverá planejamento aberto
+nem ciclo autônomo ilimitado do agente.
 
-### 4.3 Integração com LLM
+### 4.3 Integração futura com LLM
 
-O LLM interpreta texto livre e retorna dados estruturados, como:
+Em uma fatia futura, o LLM interpretará texto livre e retornará dados
+estruturados, como:
 
 - Serviço candidato.
 - Sintomas e palavras-chave.
@@ -103,8 +114,11 @@ responsáveis.
 **KEDB:** mantém erros conhecidos, sintomas, serviços relacionados e
 procedimentos de referência.
 
-A primeira versão utiliza consultas relacionais e pesquisa textual do
-PostgreSQL. PGVector fica fora do escopo inicial.
+Nesta fatia, o PostgreSQL mantém um catálogo sintético, vendor-neutral e
+versionado de serviços, ativos, equipes e mapeamentos serviço-equipe. A
+versão ativa é usada em novas avaliações. A KEDB não faz parte deste
+escopo; pesquisa textual e PGVector permanecem fora da implementação
+atual.
 
 ### 4.5 Motor de regras
 
@@ -116,28 +130,30 @@ Responsabilidades:
 - Calcular prioridade.
 - Determinar equipe por mapeamento `service_id -> target_team`.
 
-A matriz inicial é ilustrativa e precisa ser confirmada como regra de
+A matriz inicial de impacto e urgência foi aprovada como regra de
 negócio:
 
-  Impacto  Urgência     Alta   Média   Baixa
-  ------------------- ------ ------- -------
-  Alto                    P1      P2      P2
-  Médio                   P2      P3      P3
-  Baixo                   P3      P4      P4
+| Impacto | Alta | Média | Baixa |
+| --- | --- | --- | --- |
+| Alto | P1 | P2 | P2 |
+| Médio | P2 | P3 | P3 |
+| Baixo | P3 | P4 | P4 |
 
 O CMDB fornece contexto, mas criticidade do serviço não substitui a
-avaliação de impacto e urgência. Se não houver evidência suficiente, a
-aplicação solicita informação ou encaminha para revisão, em vez de
-inventar uma classificação.
+avaliação de impacto e urgência. Se faltarem fatos obrigatórios, o serviço
+persiste os fatos válidos e deixa o chamado `PENDENTE_INFORMACAO`, sem
+prioridade ou equipe. Um ativo relacionado a outro serviço também deixa
+o chamado pendente. Referências inexistentes são rejeitadas sem alterar
+o chamado.
 
 ### 4.6 Integração ITSM simulada
 
-A API simulada representa o sistema de gestão de chamados externo. Ela
-deverá permitir atualização controlada de classificação, prioridade,
-equipe e estado.
+A API simulada representa uma futura integração com o sistema de gestão
+de chamados externo. A fatia atual não envia atualizações a um ITSM
+externo nem altera o estado para `CLASSIFICADO`.
 
-A simulação também poderá injetar falhas configuráveis, exclusivamente
-em ambiente de teste.
+Uma implementação futura poderá injetar falhas configuráveis,
+exclusivamente em ambiente de teste.
 
 ### 4.7 Persistência e auditoria
 
@@ -145,73 +161,79 @@ PostgreSQL armazena os dados operacionais e de controle. A auditoria
 fica em tabela separada, com registros append-only para o usuário normal
 da aplicação.
 
+A avaliação bloqueia a linha do chamado, confere `facts_revision`, carrega
+o catálogo ativo e grava o snapshot, o resultado e o evento de auditoria
+na mesma transação. Cada snapshot alterado incrementa a revisão. A role
+`itsm_runtime` só atualiza as colunas de estado e classificação
+autorizadas; ela pode ler os catálogos, mas não alterá-los nem atualizar
+ou excluir eventos de auditoria.
+
 Append-only por permissões reduz alterações acidentais ou indevidas, mas
 não equivale, por si só, a imutabilidade criptográfica ou proteção
 contra um administrador do banco.
 
 ## 5. Modelo de dados lógico
 
-Tabelas previstas:
-
-  Tabela               Responsabilidade
-  -------------------- -----------------------------------------------
-  `tickets`            Estado atual e dados do chamado
-  `cmdb_services`      Catálogo de serviços e atributos de negócio
-  `cmdb_assets`        Ativos e dependências
-  `knowledge_base`     Erros conhecidos e procedimentos
-  `audit_events`       Eventos de execução, decisão e transição
-  `idempotency_keys`   Chaves e resultados de operações idempotentes
+| Tabela | Responsabilidade |
+| --- | --- |
+| `tickets` | Estado atual, descrição e snapshot de classificação do chamado |
+| `catalog_versions` | Versões do catálogo e indicação da versão ativa |
+| `cmdb_services` | Serviços identificados por versão |
+| `cmdb_assets` | Ativos e seu serviço relacionado em cada versão |
+| `support_teams` | Equipes identificadas por versão |
+| `service_team_mappings` | Mapeamento único de serviço para equipe em cada versão |
+| `audit_events` | Eventos append-only de criação e avaliação do chamado |
 
 ### 5.1 Tickets
 
-Campos centrais previstos:
+Campos persistidos atualmente:
 
 - `id`
-- `raw_description`
+- `description`
 - `status`
 - `service_id`
-- `category`
+- `asset_id`
 - `impact`
 - `urgency`
 - `priority`
 - `target_team`
+- `catalog_version`
+- `facts_revision`
 - `created_at`
-- `updated_at`
 
-Campos adicionais poderão ser definidos durante a modelagem, desde que
-tenham finalidade clara.
+`facts_revision` começa em zero e aumenta a cada snapshot aceito que
+altera a avaliação. O snapshot é completo: campos omitidos na nova
+avaliação substituem valores anteriores por `NULL`. Para dados
+insuficientes ou conflitantes, `priority` e `target_team` ficam nulos.
+Chaves estrangeiras compostas vinculam serviço, ativo e equipe à mesma
+versão do catálogo.
+
+O catálogo inicial `catalog-v1` contém serviços sintéticos
+`service-connectivity` e `service-endpoint`, equipes `team-network` e
+`team-workplace`, ativos `asset-router-001` e `asset-laptop-001` e seus
+mapeamentos. Novas avaliações usam a versão ativa. As versões são
+mantidas no banco como registros versionados; a role runtime não tem
+permissão para alterá-las.
 
 ### 5.2 Audit events
 
-Cada evento deverá conter, no mínimo:
+Cada evento contém:
 
-- Identificador do evento.
-- Identificador do chamado.
-- Tipo do evento.
-- Estado anterior e posterior, quando aplicável.
-- Identificador da execução/correlação.
-- Data e hora.
-- Resultado e metadados necessários para rastreabilidade.
+- `id`, `ticket_id`, `event_type` e `occurred_at`.
+- `details` JSONB com estados anterior e final, fatos, resultado e
+  versão de catálogo usada em uma avaliação.
+
+Avaliações aceitas que alteram o snapshot geram evento na mesma
+transação da atualização do chamado. A restrição de um único tipo de
+evento por chamado foi removida para permitir novas avaliações
+pendentes.
 
 Evitar armazenar segredos ou conteúdo sensível desnecessário. O usuário
 de execução da aplicação não deverá ter permissões de `UPDATE` ou
 `DELETE` nessa tabela.
 
-### 5.3 Idempotency keys
-
-A tabela deverá registrar a chave, o escopo da operação, o estado de
-processamento e o resultado necessário para responder a repetições.
-
-A chave deve identificar uma operação lógica estável, não uma tentativa
-individual. Requisições repetidas com a mesma chave e o mesmo conteúdo
-lógico devem recuperar o resultado anterior. Reutilização da mesma chave
-para conteúdo incompatível deve ser rejeitada.
-
-A reserva da chave, a alteração do chamado e o armazenamento do
-resultado devem ser coordenados transacionalmente quando pertencem ao
-mesmo banco. Se a operação envolver um sistema realmente externo, a
-estratégia deverá considerar o limite da transação e incluir
-reconciliação do resultado incerto.
+`knowledge_base` e chaves de idempotência para integrações externas
+permanecem como necessidades futuras; não são tabelas desta fatia.
 
 ## 6. Máquina de estados
 
@@ -229,8 +251,9 @@ Transições permitidas:
 stateDiagram-v2
     [*] --> NOVO
     NOVO --> EM_TRIAGEM
-    EM_TRIAGEM --> PENDENTE_INFORMACAO
+    NOVO --> PENDENTE_INFORMACAO
     PENDENTE_INFORMACAO --> EM_TRIAGEM
+    PENDENTE_INFORMACAO --> PENDENTE_INFORMACAO
     EM_TRIAGEM --> CLASSIFICADO
     EM_TRIAGEM --> ERRO_INTEGRACAO
     ERRO_INTEGRACAO --> EM_TRIAGEM
@@ -239,11 +262,20 @@ stateDiagram-v2
 
 Regras:
 
-- Transições são validadas na camada de domínio.
-- Atualização de estado e evento de auditoria devem ser gravados de
-    forma consistente.
-- `PENDENTE_INFORMACAO` só retorna à triagem após recebimento de
-    informação complementar.
+- Na avaliação determinística atual, `NOVO` e
+  `PENDENTE_INFORMACAO` aceitam novos snapshots. Fatos completos levam a
+  `EM_TRIAGEM`; dados ausentes ou conflitantes levam a
+  `PENDENTE_INFORMACAO`. A avaliação pendente pode permanecer pendente
+  após receber fatos atualizados.
+- A atualização do snapshot, da revisão, do estado e do evento de
+  auditoria é atômica.
+- Um retry idêntico em `PENDENTE_INFORMACAO`, com a mesma versão ativa,
+  não duplica efeitos. Uma nova avaliação pendente usa a versão ativa.
+- Em `EM_TRIAGEM`, somente um retry com fatos idênticos é aceito; ele
+  retorna a versão previamente persistida mesmo se outro catálogo estiver
+  ativo. Fatos diferentes são rejeitados.
+- Concorrência usa bloqueio da linha e `expected_revision`; revisões
+  desatualizadas resultam em conflito explícito, sem mesclagem.
 - `ERRO_INTEGRACAO` retorna à triagem por reprocessamento autorizado.
 - `CLASSIFICADO` não é reprocessado automaticamente; uma alteração
     posterior exige operação explicitamente autorizada e deverá ter
@@ -257,19 +289,23 @@ Regras:
 
 ## 7. Fluxo principal
 
-1. Cliente envia `POST /tickets`.
-2. API valida a requisição e persiste o chamado como `NOVO`.
-3. Orquestrador inicia execução e registra `EM_TRIAGEM`.
-4. LLM retorna extração estruturada.
-5. Aplicação valida a resposta e consulta CMDB/KEDB.
-6. Motor de regras verifica suficiência dos dados.
-7. Se faltarem dados essenciais, registra `PENDENTE_INFORMACAO` e
-    solicita complementação pelo canal disponível.
-8. Caso contrário, calcula impacto, urgência e prioridade e determina a
-    equipe.
-9. Integração envia atualização usando chave idempotente estável.
-10. A aplicação confirma o resultado e registra auditoria.
-11. Chamado passa para `CLASSIFICADO`.
+1. O cliente envia `POST /tickets`; a API valida e persiste o chamado em
+   `NOVO`.
+2. Um chamador interno fornece os fatos estruturados, o identificador do
+   chamado e `expected_revision` ao serviço `evaluate_ticket`. Não há
+   endpoint público de classificação.
+3. O serviço bloqueia o chamado, verifica seu estado e revisão e carrega
+   o catálogo ativo.
+4. As regras validam referências e consistência do ativo, determinam se
+   os fatos são suficientes e aplicam a matriz de prioridade e o
+   mapeamento serviço-equipe.
+5. O serviço persiste o snapshot completo, o resultado, o estado e a
+   auditoria em uma transação.
+6. Uma avaliação completa deixa o chamado em `EM_TRIAGEM`. Fatos
+   incompletos ou conflitantes válidos deixam-no em
+   `PENDENTE_INFORMACAO`, sem prioridade ou equipe.
+7. Uma futura integração poderá extrair fatos com LLM, consultar KEDB e
+   atualizar um ITSM externo. Esses passos não fazem parte da fatia atual.
 
 ## 8. Resiliência e idempotência
 
@@ -286,21 +322,31 @@ Regras:
 Tenacity poderá implementar a política de retry, mas não substitui a
 lógica de idempotência.
 
-### 8.2 Chave de idempotência
+### 8.2 Chave para idempotência de integração externa (futura)
 
-Exemplo conceitual: `ticket-1234-classification-v1`.
+Uma futura integração ITSM poderá usar uma chave estável, por exemplo
+`ticket-1234-classification-v1`.
 
-A mesma operação lógica reutiliza a mesma chave em todas as tentativas.
-A API simulada persiste chave e resultado. Uma resposta perdida após o
-processamento não deve causar uma segunda execução lógica.
+A mesma operação lógica reutilizará a chave em todas as tentativas. A
+API simulada futura persistirá a chave e o resultado. Uma resposta
+perdida após o processamento não deverá causar uma segunda execução
+lógica.
 
-O sistema também deve tratar a situação em que o resultado da operação é
-desconhecido: consultar/reconciliar o estado remoto antes de iniciar uma
-nova operação lógica.
+O sistema tratará também resultados desconhecidos: consultará ou
+reconciliará o estado remoto antes de iniciar uma nova operação lógica.
 
-### 8.3 Recuperação
+### 8.3 Idempotência de avaliações internas
 
-Após esgotar as tentativas:
+Uma avaliação repetida de ticket pendente com os mesmos fatos e a mesma
+versão ativa retorna o resultado persistido sem incrementar a revisão ou
+duplicar a auditoria. Se a versão ativa mudou, uma nova avaliação usa
+essa versão. Em `EM_TRIAGEM`, somente um retry com fatos idênticos é
+aceito; ele retorna o resultado e a versão salvos, sem efeitos
+duplicados.
+
+### 8.4 Recuperação futura de integração externa
+
+Após esgotar as tentativas de uma integração externa:
 
 - Registrar o erro e contexto de correlação.
 - Preservar os dados já obtidos.
@@ -312,11 +358,11 @@ Após esgotar as tentativas:
 
 ## 9. Segurança
 
-### 9.1 Prompt injection
+### 9.1 Prompt injection na futura integração LLM
 
 Descrições, anexos e documentos recuperados são dados não confiáveis.
 
-Controles:
+Quando a integração LLM for introduzida, aplicar os seguintes controles:
 
 - Separar instruções do sistema dos dados fornecidos pelo usuário.
 - Instruir o modelo a tratar o conteúdo recebido como informação, não
@@ -349,34 +395,17 @@ adequados.
 
 Cenários mínimos:
 
-  -----------------------------------------------------------------------
-  Cenário                             Resultado esperado
-  ----------------------------------- -----------------------------------
-  HTTP 500 transitório                Retry limitado
-
-  Timeout antes do processamento      Retry conforme política
-
-  Resposta perdida após commit        Mesma chave retorna resultado
-                                      anterior
-
-  Mesma chave com payload diferente   Rejeição
-
-  Serviço inexistente                 Não classificar/rotear como se
-                                      fosse válido
-
-  Dados insuficientes                 `PENDENTE_INFORMACAO`
-
-  Parâmetro fora do schema            Rejeição na validação
-
-  Prompt injection                    Conteúdo tratado como dado não
-                                      confiável
-
-  Duas execuções simultâneas          Sem sobrescrita ou transição
-                                      inconsistente
-
-  Falha persistente de integração     `ERRO_INTEGRACAO` e possibilidade
-                                      de reprocessar
-  -----------------------------------------------------------------------
+| Cenário | Resultado esperado |
+| --- | --- |
+| Fatos obrigatórios ausentes | `PENDENTE_INFORMACAO`, sem prioridade ou equipe |
+| Serviço ou ativo inexistente | Rejeição sem alterar o chamado |
+| Ativo relacionado a outro serviço | `PENDENTE_INFORMACAO`, sem prioridade ou equipe |
+| Retry pendente idêntico, mesma versão | Mesmo resultado, sem revisão ou auditoria duplicada |
+| Retry em `EM_TRIAGEM` após ativar catálogo mais novo | Resultado e versão persistidos retornados |
+| Snapshots concorrentes com a mesma revisão | No máximo uma atualização; a outra recebe conflito |
+| Falha ao inserir evento de auditoria | Rollback da atualização e do evento |
+| Timeout ou resposta perdida em integração externa futura | Retry/reconciliação com chave estável |
+| Prompt injection na futura extração LLM | Conteúdo tratado como dado não confiável |
 
 ## 11. Implantação
 
@@ -384,7 +413,7 @@ Ambiente inicial:
 
 - Um container para a aplicação FastAPI.
 - Um container para PostgreSQL.
-- LLM consumido por API externa.
+- LLM consumido por API externa em uma fatia futura.
 - Docker Compose para desenvolvimento local.
 
 A implantação futura poderá utilizar serviço gerenciado de containers,
@@ -396,8 +425,8 @@ escopo inicial.
 
 ## 12. Riscos e decisões pendentes
 
-- Definir como impacto e urgência serão obtidos e validados.
-- Validar a matriz de prioridade com regras de negócio.
+- Definir como impacto e urgência serão extraídos de texto livre em uma
+  fatia futura.
 - Definir provedor e modelo LLM.
 - Definir autenticação e autorização da API.
 - Definir retenção e acesso aos eventos de auditoria.
