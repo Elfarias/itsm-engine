@@ -292,7 +292,7 @@ Proof: run tests | `tests/unit/test_project_progress.py::test_dashboard_lists_ve
 
 **Settled during Specify**: User chose proposal-first workflow, OpenRouter, description-only provider data, `OPENROUTER_MODEL` configuration, partial proposals with explicit errors, stored ticket descriptions, no automatic retries, no catalog context, and no numeric confidence score.
 **Settled during Design**: User selected a synchronous route, dedicated service, and standard-library HTTP client.
-**Dispatched**: Verifier 1 returned PASS at HEAD `dd8e77e`; final-state Verifier pending dispatch after proofs; no screens review (no capture-bound criteria).
+**Dispatched**: Verifier 1 returned PASS at HEAD `dd8e77e`; final-state Verifier 2 returned PASS at HEAD `8f1a6f9`; no screens review (no capture-bound criteria).
 **Walked**: not applicable; this feature adds a local API without a user-facing screen.
 
 ## Phase Execution Map
