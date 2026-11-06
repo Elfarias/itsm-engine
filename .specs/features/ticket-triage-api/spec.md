@@ -1,6 +1,7 @@
 # API Local de Triagem Determinística — Specification
 
 **Approved**: 2026-11-06 - user: "Aprovar a Spec"
+**Status**: Verified
 
 ## Problem Statement
 
@@ -11,9 +12,9 @@ adicionar extração por LLM ou expor o servidor à rede pública.
 
 ## Goals
 
-- [ ] Disponibilizar uma operação HTTP local para avaliar um chamado existente.
-- [ ] Retornar o estado e o resultado persistidos pela triagem determinística.
-- [ ] Preservar validação, revisão concorrente, retry, transação e auditoria do serviço atual.
+- [x] Disponibilizar uma operação HTTP local para avaliar um chamado existente.
+- [x] Retornar o estado e o resultado persistidos pela triagem determinística.
+- [x] Preservar validação, revisão concorrente, retry, transação e auditoria do serviço atual.
 
 ## Out of Scope
 
@@ -94,19 +95,19 @@ snapshot persistidos e repetir a chamada para confirmar idempotência.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| TRIAPI-01 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-02 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-03 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-04 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-05 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-06 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-07 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-08 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-09 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-10 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-11 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-12 | P1: Avaliar um chamado por API local | Tasks | Implemented |
-| TRIAPI-13 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-01 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-02 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-03 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-04 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-05 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-06 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-07 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-08 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-09 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-10 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-11 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-12 | P1: Avaliar um chamado por API local | Tasks | Verified |
+| TRIAPI-13 | P1: Avaliar um chamado por API local | Tasks | Verified |
 
 **Coverage:** 13 total, 13 mapped to tasks, 0 unmapped.
 

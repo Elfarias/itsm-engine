@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: skipped - this is a route adapter using the existing ticket router, triage service and loopback server configuration; no architectural decision or new pattern is needed.
-**Status**: Awaiting verification
+**Status**: Complete
 **Approved**: 2026-11-06 - user: "Aprovar as tarefas"
 **Build**: none - no separate build, type-check or lint command is configured; `pytest -v` is the project validation command.
 **Run tests**: `pytest -v`
@@ -225,7 +225,7 @@ The feature's live state, written as it happens.
 
 **Settled mid-build**: user confirmed "Sim, atualizar" the exact OpenAPI route inventory to include the new triage endpoint; user authorized "Autorizar correções" for the verifier findings.
 **Previous verifier**: The findings on strict revision validation, API snapshot replacement coverage, and ticket-update failure coverage were fixed in `8fb87a2`; strict-revision proof coverage was aligned in `51bd734`.
-**Dispatched**: Verifier pending at the next clean HEAD after the final proof run; screens not applicable because no criterion cites a capture.
+**Verifier**: Independent verifier completed at `ed9e379`; PASS for C1-C13 with no findings. Screens not applicable because no criterion cites a capture.
 **Walked**: not applicable; the feature is an API with no user-facing screen.
 
 ---
