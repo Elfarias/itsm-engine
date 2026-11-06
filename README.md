@@ -3,26 +3,25 @@
 Plataforma de Triagem Inteligente de Incidentes de TI com IA, regras
 determinísticas, integração controlada e resiliência.
 
-> **Status:** projeto em definição / implementação inicial. Este
-> repositório documenta a arquitetura pretendida; comandos e
-> configurações executáveis deverão ser ajustados conforme os arquivos
-> reais da aplicação forem criados.
+> **Status:** API mínima de chamados e fatia de triagem determinística
+> implementadas. Interpretação por LLM e integração ITSM externa são
+> etapas futuras.
 
 ## Visão geral
 
-O ITSM Agent automatiza etapas da triagem de incidentes. Um LLM
-interpreta a descrição do chamado e extrai informações estruturadas. A
-aplicação valida essas informações, consulta CMDB e KEDB, calcula
-prioridade por regras determinísticas e encaminha o chamado para a
-equipe configurada.
+O ITSM Agent recebe chamados pela API e oferece um serviço interno de
+triagem determinística. O serviço avalia fatos estruturados com
+catálogos sintéticos versionados, calcula a prioridade pela matriz
+aprovada e seleciona a equipe pelo mapeamento do serviço. Esta fatia não
+expõe uma rota pública de classificação.
 
-**A IA interpreta. A aplicação valida e decide conforme regras
-explícitas.**
+LLM, KEDB e integração ITSM externa permanecem no roadmap.
 
 ## Objetivos
 
 - Reduzir tarefas repetitivas de triagem.
-- Demonstrar integração segura entre LLM e sistemas corporativos.
+- Preparar uma futura integração segura entre LLM e sistemas
+  corporativos.
 - Aplicar regras de negócio determinísticas.
 - Controlar estados e operações de integração.
 - Demonstrar idempotência, auditoria e recuperação de falhas.
@@ -31,29 +30,26 @@ explícitas.**
 ## Arquitetura resumida
 
 ``` text
-Solicitante / Cliente
+Cliente
         |
         v
-   FastAPI (API)
+FastAPI: criar / consultar chamados
         |
         v
- Orquestrador Python
+ PostgreSQL: chamados
         |
-        +----> LLM: interpretação e extração estruturada
-        |
-        +----> PostgreSQL: CMDB e KEDB
-        |
-        +----> Motor de regras: impacto, urgência e prioridade
-        |
-        +----> Roteamento: service_id -> target_team
+Chamador interno com fatos estruturados
         |
         v
- Integração ITSM simulada
+ Serviço interno de triagem
         |
-        +----> Retry / timeout / idempotência
+        +----> Catálogo PostgreSQL versionado
         |
-        v
- PostgreSQL: chamados, chaves idempotentes e auditoria
+        +----> Regras de impacto, urgência e prioridade
+        |
+        +----> Auditoria transacional
+
+Futuro: LLM / KEDB / integração ITSM externa
 ```
 
 ## Stack principal
@@ -62,9 +58,8 @@ Solicitante / Cliente
 - FastAPI
 - Pydantic
 - PostgreSQL
-- LLM consumido por API
-- Tenacity
 - Docker e Docker Compose
+- LLM e retry de integração externa (etapas futuras)
 
 Não fazem parte da primeira versão: Kubernetes, Kafka, Redis, PGVector e
 arquitetura de microsserviços.
@@ -89,15 +84,23 @@ e decisões.
 
 ## Fluxo de triagem
 
-1. Receber e persistir o chamado.
-2. Alterar o estado para `EM_TRIAGEM`.
-3. Solicitar ao LLM a extração estruturada de sintomas e contexto.
-4. Validar a resposta e consultar CMDB/KEDB.
-5. Solicitar informações adicionais quando necessário.
-6. Calcular prioridade por impacto e urgência.
-7. Determinar a equipe por mapeamento controlado.
-8. Atualizar o chamado com idempotência.
-9. Registrar eventos de auditoria e concluir a triagem.
+1. A API valida e persiste o chamado no estado `NOVO`.
+2. Um chamador interno envia os fatos estruturados e a revisão esperada ao
+   serviço de triagem; não há endpoint público de classificação.
+3. O serviço bloqueia o chamado e carrega a versão ativa do catálogo.
+4. As regras validam referências e consistência do ativo, calculam a
+   prioridade pela matriz aprovada e obtêm a equipe do catálogo.
+5. O snapshot completo, o resultado, o estado e a auditoria são gravados
+   na mesma transação.
+6. Fatos completos deixam o chamado em `EM_TRIAGEM`; dados ausentes ou
+   conflitantes deixam-no em `PENDENTE_INFORMACAO`, sem prioridade ou
+   equipe.
+7. Uma reavaliação pendente substitui o snapshot completo. Retries
+   idênticos não duplicam efeitos; revisões concorrentes desatualizadas
+   geram conflito explícito.
+
+Extração por LLM, consulta à KEDB e atualização de um ITSM externo não
+fazem parte do fluxo atual.
 
 ## Estados do chamado
 
@@ -146,15 +149,15 @@ sem alterar as responsabilidades arquiteturais.
 - Docker Engine ou Docker Desktop com Docker Compose.
 - Python na versão definida no ambiente do projeto, caso a execução
     local fora de containers seja necessária.
-- Acesso a um provedor de LLM por API.
+- Acesso a um provedor de LLM por API apenas quando essa integração
+  futura for implementada.
 - Arquivo de configuração local baseado em `.env.example`.
 
 ## Configuração
 
 1. Obtenha o código do repositório.
 2. Crie o arquivo `.env` a partir do modelo `.env.example`.
-3. Configure a conexão com PostgreSQL e as credenciais do provedor de
-    LLM.
+3. Configure a conexão com PostgreSQL para executar a API atual.
 4. Inicie os serviços com Docker Compose, após a criação e validação do
     `compose.yaml`.
 5. Execute as migrações do banco.
@@ -172,7 +175,7 @@ implementação. A configuração deverá contemplar, no mínimo:
 
 - Ambiente de execução.
 - URL e credenciais do PostgreSQL.
-- Endpoint, modelo e chave do provedor LLM.
+- Endpoint, modelo e chave do provedor LLM (etapa futura).
 - Timeout de chamadas externas.
 - Limite de tentativas e parâmetros de backoff.
 - Configuração de injeção de falhas, habilitada somente em ambiente de
@@ -187,21 +190,22 @@ aplicadas.
 ## Testes essenciais
 
 - Contratos e validação da API.
-- Extração estruturada e resposta inválida do LLM.
-- Serviço inexistente no CMDB.
+- Catálogo versionado e serviço inexistente.
 - Dados insuficientes e estado pendente.
-- Cálculo de prioridade e roteamento.
-- Transições válidas e inválidas.
-- Timeout e HTTP 500.
-- Resposta perdida após a transação ser confirmada.
-- Repetição de operação com a mesma chave de idempotência.
+- Matriz de prioridade, roteamento e reavaliação de snapshots.
+- Retry idempotente, conflito de revisão e auditoria transacional.
+- Extração estruturada, resposta inválida do LLM e integração externa
+  (etapas futuras).
+- Timeout, HTTP 500, resposta perdida e chave de idempotência em
+  integração externa (etapa futura).
 - Execuções concorrentes sobre o mesmo chamado.
-- Prompt injection em descrições e documentos recuperados.
+- Prompt injection em descrições e documentos recuperados (futura
+  integração LLM).
 - Permissões de escrita e restrições da auditoria.
 
 ## Segurança
 
-- O LLM não acessa diretamente o banco de dados.
+- Quando integrado, o LLM não acessará diretamente o banco de dados.
 - Ferramentas possuem escopo mínimo e argumentos validados.
 - Conteúdo de chamados e documentos recuperados é tratado como dado
     não confiável.
@@ -222,9 +226,9 @@ automática a ambiente crítico.
 
 ## Próximos passos
 
-1. Confirmar as regras de impacto, urgência e prioridade.
-2. Definir contratos REST e modelo de dados.
-3. Implementar máquina de estados e persistência.
-4. Implementar integração com LLM e validação estruturada.
-5. Implementar idempotência e cenários de falha.
-6. Automatizar testes e documentar evidências.
+1. Definir o contrato para expor a classificação por API, caso seja
+   necessário disponibilizá-la além do serviço interno.
+2. Implementar extração estruturada de fatos com LLM e consultas à KEDB.
+3. Implementar integração ITSM externa com retry, timeout e idempotência.
+4. Definir interfaces de complementação de chamados e experiência dos
+   operadores.

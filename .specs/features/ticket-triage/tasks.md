@@ -252,13 +252,15 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 
 **Done when**:
 
-- [ ] The README describes deterministic catalog-backed classification and no longer lists confirmation of the initial matrix as a pending next step.
-- [ ] The README continues to identify LLM interpretation and external ITSM integration as later work.
-- [ ] Documentation matches the approved Spec and implementation; no test is required for this documentation-only task.
+- [x] The README describes deterministic catalog-backed classification and no longer lists confirmation of the initial matrix as a pending next step.
+- [x] The README continues to identify LLM interpretation and external ITSM integration as later work.
+- [x] Documentation matches the approved Spec and implementation; no test is required for this documentation-only task.
 
 **Tests**: none
 **Gate**: build
 **Commit**: `docs(readme): describe deterministic triage slice`
+**Gate result**: `pytest -v` - 43 passed, 1 pre-existing deprecation warning.
+**Status**: Complete
 
 ---
 
@@ -320,7 +322,7 @@ Proof: run tests | tests/integration/test_triage_service.py::test_em_triagem_ret
 
 The feature's live state, written as it happens - a compaction gives no warning.
 
-**Settled mid-build**: none; T1-T7 complete, next is T8.
+**Settled mid-build**: none; T1-T8 complete.
 **Dispatched**: none; 8 tasks fit within one inline batch.
 **Walked**: not yet; no user-facing screen or public classification API is in scope.
 
