@@ -102,7 +102,7 @@ Solicitantes precisam registrar incidentes e consultar o chamado resultante. O p
 | TKT-05 | P1: Registrar chamado | Tasks | In Tasks |
 | TKT-06 | P1: Registrar chamado | Tasks | In Tasks |
 | TKT-07 | P1: Registrar chamado | Tasks | In Tasks |
-| TKT-08 | P1: Registrar chamado | Tasks | In Tasks |
+| TKT-08 | P1: Registrar chamado | Tasks | Verified |
 | TKT-09 | P1: Consultar chamado | Tasks | In Tasks |
 | TKT-10 | P1: Consultar chamado | Tasks | In Tasks |
 | TKT-11 | P1: Consultar chamado | Tasks | In Tasks |

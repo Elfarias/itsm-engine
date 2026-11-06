@@ -94,14 +94,16 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] `pytest -v` can import and start the application.
-- [ ] The development server binds to loopback and does not listen on a public interface.
-- [ ] One runtime integration test proves the loopback binding.
-- [ ] Test count: 1 runtime integration test passes.
+- [x] `pytest -v` can import and start the application.
+- [x] The development server binds to loopback and does not listen on a public interface.
+- [x] One runtime integration test proves the loopback binding.
+- [x] Test count: 1 runtime integration test passes.
 
 **Tests**: integration
 **Gate**: Full
 **Commit**: `feat(api): bootstrap local FastAPI application`
+**Status**: Complete
+**Gate result**: `pytest -v` - 1 passed.
 
 ---
 
