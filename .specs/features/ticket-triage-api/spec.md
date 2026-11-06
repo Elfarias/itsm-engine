@@ -94,19 +94,19 @@ snapshot persistidos e repetir a chamada para confirmar idempotência.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| TRIAPI-01 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-02 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-03 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-04 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-05 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-06 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-07 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-08 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-09 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-10 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-11 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-12 | P1: Avaliar um chamado por API local | Tasks | Pending |
-| TRIAPI-13 | P1: Avaliar um chamado por API local | Tasks | Pending |
+| TRIAPI-01 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-02 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-03 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-04 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-05 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-06 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-07 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-08 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-09 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-10 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-11 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-12 | P1: Avaliar um chamado por API local | Tasks | Implemented |
+| TRIAPI-13 | P1: Avaliar um chamado por API local | Tasks | Implemented |
 
 **Coverage:** 13 total, 13 mapped to tasks, 0 unmapped.
 

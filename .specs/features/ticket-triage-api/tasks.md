@@ -23,7 +23,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | Code Layer | Required Test Type | Coverage Expectation | Location Pattern | Run Command |
 | ---------- | ------------------ | -------------------- | ---------------- | ----------- |
 | HTTP request schema | unit | Required nonnegative revision, optional full-snapshot facts, enum validation, rejection of extra fields | `tests/unit/test_triage_api_schemas.py` | `pytest -v` |
-| Ticket triage route | integration | Every response and failure in TRIAPI-02 through TRIAPI-13; persisted state and audit effects; retry and catalog-version transitions | `tests/integration/test_triage_api.py`, `tests/integration/test_app_runtime.py` | `pytest -v` |
+| Ticket triage route | integration | Every response and failure in TRIAPI-02 through TRIAPI-13; persisted state and audit effects; retry and catalog-version transitions | `tests/integration/test_triage_api.py`, `tests/integration/test_app_runtime.py`, `tests/integration/test_triage_catalogs.py` | `pytest -v` |
 | Project documentation | none | Verify endpoint scope, request/response behavior and local-only boundary match the approved spec and implementation | `README.md`, `ARCHITECTURE.md`, `PROJECT.md` | Build gate only |
 
 ## Gate Check Commands
@@ -91,20 +91,20 @@ T3, T4, T5
 ### T2: Exposing deterministic triage through the ticket API
 
 **What**: Add `POST /tickets/{ticket_id}/triage`, invoke `evaluate_ticket`, return its persisted result, and translate domain and persistence failures to the approved HTTP statuses.
-**Where**: `app/tickets/routes.py`
+**Where**: `app/tickets/routes.py`, `tests/integration/test_triage_catalogs.py`
 **Depends on**: T1
 **Reuses**: `evaluate_ticket` from `app/triage/service.py`, `TicketTriageRequest` from `app/triage/api_schemas.py`, and existing ticket route error handling.
 **Requirement**: TRIAPI-02, TRIAPI-03, TRIAPI-04, TRIAPI-05, TRIAPI-06, TRIAPI-07, TRIAPI-08, TRIAPI-09, TRIAPI-10, TRIAPI-11, TRIAPI-12, TRIAPI-13
 
 **Done when**:
 
-- [ ] The endpoint returns the response fields and successful complete/pending outcomes specified in the Spec.
-- [ ] It maps missing tickets to 404, malformed/invalid requests and facts to 422, state/revision conflicts to 409, and database/catalog failures to 503.
-- [ ] Integration tests cover the complete, pending, missing-ticket, invalid-input, conflict, pending-retry, active-catalog-change, completed-retry, persistence-failure and missing-active-catalog cases.
-- [ ] The existing loopback binding test remains green; no public-interface binding is introduced.
-- [ ] Gate check passes: `pytest -v`.
-- [ ] Integration gate: `pytest -v tests/integration` passes 44 tests (34 existing plus 10 new API tests).
-- [ ] Full gate: `pytest -v` passes 58 tests.
+- [x] The endpoint returns the response fields and successful complete/pending outcomes specified in the Spec.
+- [x] It maps missing tickets to 404, malformed/invalid requests and facts to 422, state/revision conflicts to 409, and database/catalog failures to 503.
+- [x] Integration tests cover the complete, pending, missing-ticket, invalid-input, conflict, pending-retry, active-catalog-change, completed-retry, persistence-failure and missing-active-catalog cases.
+- [x] The existing loopback binding test remains green; no public-interface binding is introduced.
+- [x] Gate check passes: `pytest -v`.
+- [x] Integration gate: `pytest -v tests/integration` passes 44 tests (34 existing plus 10 new API tests).
+- [x] Full gate: `pytest -v` passes 58 tests.
 
 **Tests**: integration
 **Gate**: full
