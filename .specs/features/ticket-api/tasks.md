@@ -18,7 +18,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 - Use FastAPI and Pydantic for the HTTP API and contracts.
 - Use PostgreSQL through `psycopg` with explicit SQL. Store schema changes as SQL migrations; do not add an ORM or a migration framework for this slice.
-- Run PostgreSQL locally through Docker Compose for development and integration tests. The test setup starts the database before `pytest -v`.
+- Run `postgres:17-alpine` locally through Docker Compose for development and integration tests. The test setup starts the database before `pytest -v`.
 - Use separate schema-owner and application-runtime database roles. The runtime role receives only the table permissions needed by this feature; it cannot update or delete audit events.
 - Bind the unauthenticated development server to `127.0.0.1`. Preserve the submitted description after validating that it is not blank.
 - The project has no application code, test samples, test configuration, build configuration, or lint/type-check commands yet. `TECHNOLOGY-STACK.md` proposes pytest, and the user confirmed unit and integration tests with `pytest -v`.
@@ -117,14 +117,16 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] The test fixture starts a healthy local PostgreSQL service before integration tests run.
-- [ ] The schema-owner and application-runtime roles are distinct and use local environment configuration without committed secrets.
-- [ ] One integration test verifies database readiness and role separation.
-- [ ] Test count: 1 database setup integration test passes.
+- [x] The test fixture starts a healthy local PostgreSQL service before integration tests run.
+- [x] The schema-owner and application-runtime roles are distinct and use local environment configuration without committed secrets.
+- [x] One integration test verifies database readiness and role separation.
+- [x] Test count: 1 database setup integration test passes.
 
 **Tests**: integration
 **Gate**: Full
 **Commit**: `test(db): configure local PostgreSQL integration service`
+**Status**: Complete
+**Gate result**: `pytest -v` - 2 passed.
 
 ---
 
@@ -302,7 +304,7 @@ Proof: run tests | tests/integration/test_ticket_api.py::test_get_invalid_uuid_r
 
 ## Handoff
 
-**Settled mid-build**: User confirmed unit and integration tests with the single command `pytest -v`.
+**Settled mid-build**: User confirmed unit and integration tests with `pytest -v`; user chose `postgres:17-alpine` for local Compose, saying "postgres_image=postgres:17-alpine".
 **Dispatched**: none.
 **Walked**: not started.
 
