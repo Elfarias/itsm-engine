@@ -91,7 +91,7 @@ Uma nova avaliação de ticket pendente usa a versão ativa do catálogo. Um tic
   - `lock_ticket(connection, ticket_id) -> TicketSnapshot | None` - seleciona o ticket e sua revisão com `FOR UPDATE`.
   - `load_active_catalog(connection) -> CatalogSnapshot` - retorna serviços, ativos, mapeamentos e versão ativa.
   - `save_evaluation(connection, ticket_id, decision, next_revision) -> None` - persiste o snapshot completo e o resultado.
-  - `append_evaluation_event(connection, ticket_id, decision, catalog_version) -> None` - insere evento append-only de auditoria.
+  - `append_evaluation_event(connection, ticket_id, previous_status, decision) -> None` - insere evento append-only de auditoria com estados anterior e final.
 - **Dependencies**: psycopg e o schema PostgreSQL definido pelas migrações.
 - **Reuses**: Acesso a linhas psycopg e convenções de transação existentes em `app/tickets/repository.py`.
 
@@ -139,7 +139,7 @@ Tickets em `NOVO` e `PENDENTE_INFORMACAO` podem iniciar uma avaliação. O fluxo
 
 ### Audit Event Details
 
-Adicionar à `audit_events` um campo JSONB para o resultado da avaliação e a versão do catálogo. Remover a restrição de unicidade existente em `(ticket_id, event_type)` para permitir que avaliações futuras e válidas de um ticket pendente gerem eventos. Preservar as permissões append-only.
+Adicionar à `audit_events` um campo JSONB para os estados anterior e final, fatos classificados, resultado e versão do catálogo. Remover a restrição de unicidade existente em `(ticket_id, event_type)` para permitir que avaliações futuras e válidas de um ticket pendente gerem eventos. Preservar as permissões append-only.
 
 ---
 

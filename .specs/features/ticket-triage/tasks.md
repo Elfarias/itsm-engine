@@ -138,6 +138,7 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 **Tests**: unit
 **Gate**: quick
 **Commit**: `feat(triage): implement deterministic rules`
+**Commit hash**: `177dfbf`
 **Gate result**: `pytest -v tests/unit` - 10 passed.
 **Status**: Complete
 
@@ -153,16 +154,18 @@ Phases run sequentially. Tasks within each phase execute in the listed order.
 
 **Done when**:
 
-- [ ] Repository queries load version-scoped service, asset and team relationships and lock the ticket row for update.
-- [ ] Persistence writes the complete snapshot, status, revision and catalog-version audit details in the caller's transaction.
-- [ ] A failure inserting the audit event rolls back all corresponding ticket changes; multiple evaluation events can be appended without granting audit update/delete privileges.
-- [ ] Integration tests cover persistence, audit details/permissions and rollback.
-- [ ] Test count: 3 triage-repository integration tests pass.
-- [ ] Gate check passes: `pytest -v`.
+- [x] Repository queries load version-scoped service, asset and team relationships and lock the ticket row for update.
+- [x] Persistence writes the complete snapshot, status, revision and catalog-version audit details in the caller's transaction.
+- [x] A failure inserting the audit event rolls back all corresponding ticket changes; multiple evaluation events can be appended without granting audit update/delete privileges.
+- [x] Integration tests cover persistence, audit details/permissions and rollback.
+- [x] Test count: 3 triage-repository integration tests pass.
+- [x] Gate check passes: `pytest -v`.
 
 **Tests**: integration
 **Gate**: full
 **Commit**: `feat(triage): persist evaluation transactionally`
+**Gate result**: `pytest -v` - 34 passed, 1 pre-existing deprecation warning.
+**Status**: Complete
 
 ---
 
