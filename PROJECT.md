@@ -2,7 +2,7 @@
 
 **Nome do projeto:** ITSM Agent
 **Versão do documento:** 1.0
-**Status:** Baseline atualizada para a fatia de triagem determinística
+**Status:** Acompanhamento centralizado; fatia atual implementada localmente
 **Idioma:** Português (Brasil)
 
 ## 1. Visão geral
@@ -49,30 +49,28 @@ IA.
 
 ### Fatia implementada
 
-1. API FastAPI para criar e consultar chamados.
-2. Rota local `POST /tickets/{ticket_id}/triage` para avaliar um chamado
-   existente por fatos estruturados.
-3. PostgreSQL como persistência relacional.
-4. Catálogos sintéticos e versionados de serviços, ativos e equipes, sem
-   CRUD administrativo.
-5. Serviço interno de regras determinísticas para prioridade e
-   roteamento por serviço.
-6. Persistência de snapshots completos, controle de revisão, estados de
-   triagem e auditoria transacional append-only.
-7. Execução local e testes de integração com Docker Compose.
+| Entrega | Status | Escopo entregue | Especificação | Tarefas | Verificação |
+| --- | --- | --- | --- | --- | --- |
+| API básica de chamados | Concluída e verificada | Criar e consultar chamados com persistência PostgreSQL e auditoria. | [Spec](.specs/features/ticket-api/spec.md) | [Tarefas](.specs/features/ticket-api/tasks.md) | [Verificação](.specs/features/ticket-api/verification.md) |
+| Triagem determinística | Concluída e verificada | Catálogos versionados, regras de prioridade e roteamento, controle de revisão, estados e auditoria transacional. | [Spec](.specs/features/ticket-triage/spec.md) | [Tarefas](.specs/features/ticket-triage/tasks.md) | [Verificação](.specs/features/ticket-triage/verification.md) |
+| API local de triagem determinística | Concluída e verificada | Avaliar chamados existentes por fatos estruturados na rota local. | [Spec](.specs/features/ticket-triage-api/spec.md) | [Tarefas](.specs/features/ticket-triage-api/tasks.md) | [Verificação](.specs/features/ticket-triage-api/verification.md) |
 
-### Evoluções futuras
+**Em andamento:** nenhuma entrega registrada.
 
-- Interpretação de descrições em texto livre por LLM e extração estruturada.
-- Consultas à KEDB.
-- Acesso remoto à API, com autenticação e autorização; a rota atual
-  permanece restrita ao loopback.
-- Orquestrador e canal remoto de complementação de chamados.
-- Integração ITSM externa com retry, timeout e idempotência remota.
-- Interface gráfica completa para operadores.
-- Plataforma de microsserviços, Kubernetes, broker, Redis, PGVector ou
-  alta disponibilidade multi-região.
-- Execução automática de procedimentos de correção em infraestrutura.
+**Regra de atualização:** ao concluir cada entrega ou alterar seu status, atualize esta tabela e o backlog no `PROJECT.md` no mesmo commit da entrega.
+
+### Backlog planejado, sem prioridade
+
+| Frente futura | Status |
+| --- | --- |
+| Interpretação de descrições em texto livre por LLM e extração estruturada | Planejada, sem prioridade |
+| Consultas à KEDB | Planejada, sem prioridade |
+| Acesso remoto à API com autenticação e autorização | Planejada, sem prioridade |
+| Orquestrador e canal remoto de complementação de chamados | Planejada, sem prioridade |
+| Integração ITSM externa com retry, timeout e idempotência remota | Planejada, sem prioridade |
+| Interface gráfica completa para operadores | Planejada, sem prioridade |
+| Plataforma com microsserviços, Kubernetes, broker, Redis, PGVector ou alta disponibilidade multi-região | Planejada, sem prioridade |
+| Execução automática de procedimentos de correção em infraestrutura | Planejada, sem prioridade |
 
 Esses itens poderão ser reconsiderados somente quando houver requisito
 concreto que os justifique.
