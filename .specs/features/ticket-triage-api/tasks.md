@@ -122,10 +122,10 @@ T3, T4, T5
 
 **Done when**:
 
-- [ ] The endpoint and request fields match the implementation.
-- [ ] Documentation distinguishes a local HTTP endpoint from public-network exposure.
-- [ ] The documented success and error outcomes match the Spec.
-- [ ] Gate check passes: `pytest -v`.
+- [x] The endpoint and request fields match the implementation.
+- [x] Documentation distinguishes a local HTTP endpoint from public-network exposure.
+- [x] The documented success and error outcomes match the Spec.
+- [x] Gate check passes: `pytest -v`.
 
 **Tests**: none
 **Gate**: build

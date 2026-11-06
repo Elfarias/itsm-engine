@@ -12,8 +12,10 @@ determinísticas, integração controlada e resiliência.
 O ITSM Agent recebe chamados pela API e oferece um serviço interno de
 triagem determinística. O serviço avalia fatos estruturados com
 catálogos sintéticos versionados, calcula a prioridade pela matriz
-aprovada e seleciona a equipe pelo mapeamento do serviço. Esta fatia não
-expõe uma rota pública de classificação.
+aprovada e seleciona a equipe pelo mapeamento do serviço. A triagem pode
+ser iniciada pela rota local `POST /tickets/{ticket_id}/triage`; o
+servidor permanece ligado somente a `127.0.0.1` e não expõe a rota à
+rede pública.
 
 LLM, KEDB e integração ITSM externa permanecem no roadmap.
 
@@ -33,7 +35,7 @@ LLM, KEDB e integração ITSM externa permanecem no roadmap.
 Cliente
         |
         v
-FastAPI: criar / consultar chamados
+FastAPI: criar / consultar chamados e iniciar triagem local
         |
         v
  PostgreSQL: chamados
@@ -85,8 +87,9 @@ e decisões.
 ## Fluxo de triagem
 
 1. A API valida e persiste o chamado no estado `NOVO`.
-2. Um chamador interno envia os fatos estruturados e a revisão esperada ao
-   serviço de triagem; não há endpoint público de classificação.
+2. Um cliente local envia os fatos estruturados e a revisão esperada a
+   `POST /tickets/{ticket_id}/triage`; a rota encaminha a solicitação ao
+   serviço de triagem determinística.
 3. O serviço bloqueia o chamado e carrega a versão ativa do catálogo.
 4. As regras validam referências e consistência do ativo, calculam a
    prioridade pela matriz aprovada e obtêm a equipe do catálogo.
@@ -101,6 +104,48 @@ e decisões.
 
 Extração por LLM, consulta à KEDB e atualização de um ITSM externo não
 fazem parte do fluxo atual.
+
+## API local de triagem
+
+Depois de configurar `DATABASE_URL`, aplicar as migrações e iniciar o
+servidor local, crie um chamado e avalie-o usando o ID retornado:
+
+```powershell
+$ticket = Invoke-RestMethod -Method Post `
+  -Uri "http://127.0.0.1:8000/tickets" `
+  -ContentType "application/json" `
+  -Body '{"description":"Falha no endpoint"}'
+
+$body = @{
+  expected_revision = 0
+  facts = @{
+    service_id = "service-endpoint"
+    asset_id = "asset-laptop-001"
+    impact = "ALTO"
+    urgency = "ALTA"
+  }
+} | ConvertTo-Json -Depth 3
+
+Invoke-RestMethod -Method Post `
+  -Uri "http://127.0.0.1:8000/tickets/$($ticket.id)/triage" `
+  -ContentType "application/json" `
+  -Body $body
+```
+
+O corpo exige `expected_revision` não negativo e o objeto `facts`.
+`service_id`, `asset_id`, `impact` e `urgency` são opcionais; `facts`
+representa o snapshot completo, então campos omitidos não preservam
+valores de uma avaliação anterior. A resposta `200` inclui
+`ticket_id`, `status`, `facts`, `priority`, `target_team`,
+`catalog_version` e `facts_revision`. Fatos incompletos ou inconsistentes
+também retornam `200`, com `status` igual a `PENDENTE_INFORMACAO` e sem
+prioridade ou equipe.
+
+Os demais resultados são `404` para chamado inexistente, `422` para
+caminho, corpo, enum ou referência de catálogo inválidos, `409` para
+revisão desatualizada ou estado incompatível, e `503` para falha de
+persistência ou ausência de catálogo ativo. A rota não exige autenticação
+e deve ser usada somente no servidor local; não a exponha à rede pública.
 
 ## Estados do chamado
 
@@ -226,9 +271,7 @@ automática a ambiente crítico.
 
 ## Próximos passos
 
-1. Definir o contrato para expor a classificação por API, caso seja
-   necessário disponibilizá-la além do serviço interno.
-2. Implementar extração estruturada de fatos com LLM e consultas à KEDB.
-3. Implementar integração ITSM externa com retry, timeout e idempotência.
-4. Definir interfaces de complementação de chamados e experiência dos
+1. Implementar extração estruturada de fatos com LLM e consultas à KEDB.
+2. Implementar integração ITSM externa com retry, timeout e idempotência.
+3. Definir interfaces de complementação de chamados e experiência dos
    operadores.
