@@ -103,15 +103,18 @@ T4 → T7
 
 **Done when**:
 
-- [ ] Requests use `OPENROUTER_API_KEY`, required `OPENROUTER_MODEL`, bearer authentication, non-streaming JSON Schema output, `require_parameters: true`, and a 30-second timeout.
-- [ ] The provider request contains the description as its only ticket data; it contains no ticket ID, other ticket fields, or catalog values.
-- [ ] Missing configuration, timeout, rate limit, and provider errors produce typed failures without retrying or logging secrets/content.
-- [ ] Unit tests mock the HTTP boundary and assert request details, timeout, single-attempt behavior, and mapped failures.
-- [ ] Gate check passes: `pytest -v tests/unit`.
+- [x] Requests use `OPENROUTER_API_KEY`, required `OPENROUTER_MODEL`, bearer authentication, non-streaming JSON Schema output, `require_parameters: true`, and a 30-second timeout.
+- [x] The provider request contains the description as its only ticket data; it contains no ticket ID, other ticket fields, or catalog values.
+- [x] Missing configuration, timeout, rate limit, and provider errors produce typed failures without retrying or logging secrets/content.
+- [x] Unit tests mock the HTTP boundary and assert request details, timeout, single-attempt behavior, and mapped failures.
+- [x] Gate check passes: `pytest -v tests/unit`.
+- [x] Test count: 24 unit tests pass (21 before this task plus 3 provider-client tests).
 
 **Tests**: unit
 **Gate**: quick
 **Commit**: `feat(triage): add OpenRouter extraction client`
+**Status**: Complete
+**Gate result**: `pytest -v tests/unit` - 24 passed.
 
 ---
 
