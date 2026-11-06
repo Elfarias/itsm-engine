@@ -1,17 +1,18 @@
 # ARCHITECTURE — ITSM Agent
 
 **Versão:** 1.0
-**Status:** Baseline arquitetural para a primeira versão
+**Status:** API local de chamados, triagem determinística e interpretação local por LLM
 
 ## 1. Objetivo
 
 Este documento descreve a arquitetura lógica e técnica da Plataforma de
 Triagem Inteligente de Incidentes de TI (ITSM Agent).
 
-A arquitetura-alvo combina interpretação probabilística por LLM com
-validações e decisões determinísticas na aplicação. A fatia atual
-implementa a persistência de chamados, catálogos versionados e regras
-determinísticas internas, sem integração LLM ou ITSM externo. O desenho
+A arquitetura combina interpretação probabilística por LLM com
+validações e decisões determinísticas na aplicação. A implementação atual
+inclui persistência de chamados, catálogos versionados, triagem
+determinística e uma rota local de proposta de interpretação via
+OpenRouter. A integração ITSM externa permanece fora do escopo. O desenho
 prioriza simplicidade operacional, rastreabilidade e recuperação
 controlada de falhas.
 
@@ -22,7 +23,8 @@ controlada de falhas.
 2. LLM limitado à interpretação e extração de informações.
 3. Regras de negócio executadas por código determinístico.
 4. Banco relacional como fonte de persistência e estado.
-5. Operações externas com timeout, retry limitado e idempotência.
+5. A interpretação OpenRouter tem timeout finito e não repete chamadas;
+   retries e idempotência aplicam-se a futuras integrações externas.
 6. Auditoria separada dos dados mutáveis do chamado.
 7. Segurança por validação, privilégio mínimo e ferramentas restritas.
 8. Evolução incremental baseada em requisitos observáveis.
@@ -32,24 +34,24 @@ controlada de falhas.
 ``` mermaid
 flowchart TD
     U[Solicitante / Cliente] --> API[FastAPI]
-    API --> ORQ[Orquestrador Python]
-    ORQ --> LLM[LLM via API]
-    ORQ --> DATA[Camada de acesso a dados]
-    DATA --> DB[(PostgreSQL)]
-    ORQ --> RULES[Motor determinístico]
-    RULES --> ORQ
-    ORQ --> ITSM[API ITSM simulada]
-    ITSM --> DB
-    ORQ --> AUDIT[Serviço de auditoria]
+    API --> TICKETS[Repositório de chamados]
+    TICKETS --> DB[(PostgreSQL)]
+    API --> INTERPRET[Serviço de interpretação]
+    INTERPRET --> CLIENT[Cliente OpenRouter]
+    CLIENT --> LLM[API OpenRouter]
+    API --> TRIAGE[Serviço de triagem determinística]
+    TRIAGE --> RULES[Motor determinístico]
+    TRIAGE --> DATA[Catálogos versionados]
+    DATA --> DB
+    TRIAGE --> AUDIT[Auditoria transacional]
     AUDIT --> DB
 ```
 
-    O diagrama representa a arquitetura-alvo. Nesta fatia, o fluxo
-    implementado termina no serviço interno de triagem e no PostgreSQL.
-
-    O LLM é uma integração futura consumida pela aplicação. Ele não recebe
-credenciais do banco e não executa SQL nem chamadas arbitrárias. A fatia
-atual recebe fatos estruturados e não chama um LLM.
+O endpoint `POST /tickets/{ticket_id}/interpretation` carrega a descrição
+persistida e solicita uma proposta. O endpoint
+`POST /tickets/{ticket_id}/triage` avalia fatos estruturados em uma
+operação separada. O LLM não recebe credenciais do banco, não executa SQL
+e não recebe o ID do chamado, outros campos ou dados do catálogo.
 
 ## 4. Componentes
 
@@ -57,11 +59,13 @@ atual recebe fatos estruturados e não chama um LLM.
 
 Responsabilidades:
 
-- Expor endpoints REST para criar e consultar chamados e
-  `POST /tickets/{ticket_id}/triage` para iniciar a avaliação de um
-  chamado existente.
-- Restringir a API atual ao servidor local ligado a `127.0.0.1`; a rota
-  de triagem é sem autenticação e não deve ser exposta à rede pública.
+- Expor endpoints REST para criar e consultar chamados,
+  `POST /tickets/{ticket_id}/interpretation` para propor fatos a partir
+  da descrição salva e `POST /tickets/{ticket_id}/triage` para avaliar
+  fatos estruturados separadamente.
+- Restringir a API atual ao servidor local ligado a `127.0.0.1`; as rotas
+  de interpretação e triagem são sem autenticação e não devem ser
+  expostas à rede pública.
 - Validar o corpo da avaliação: `expected_revision` não negativo e
   `facts` como snapshot completo, com `service_id`, `asset_id`, `impact`
   e `urgency` opcionais. Campos omitidos substituem valores anteriores
@@ -70,27 +74,34 @@ Responsabilidades:
   chamado inexistente, `422` para corpo, enum ou referência inválidos,
   `409` para conflito de revisão ou estado e `503` para falhas de
   persistência ou ausência de catálogo ativo.
+- Para interpretação, retornar `200` com a proposta; usar `404` antes de
+  chamar o provedor quando o chamado não existir, `503` para configuração
+  ausente ou indisponibilidade do provedor e `502` para resposta inválida.
 - Não expor operações de CRUD dos catálogos.
 - Integrar futuramente as operações controladas de complementação e
   reprocessamento.
 - Exigir autenticação e autorização antes de qualquer futura exposição
   além do uso local.
 
-A API não deve concentrar regras de domínio complexas; deve delegar ao
-orquestrador e aos serviços internos. A rota HTTP local funciona como
-adaptador e delega a avaliação ao serviço `evaluate_ticket`, que mantém
-as regras determinísticas, as transições de estado e a transação de
-persistência e auditoria.
+A API não deve concentrar regras de domínio complexas; deve delegar aos
+serviços de aplicação. A rota HTTP local funciona como adaptador e delega
+a avaliação ao serviço `evaluate_ticket`, que mantém as regras
+determinísticas, as transições de estado e a transação de persistência e
+auditoria.
 
-### 4.2 Orquestrador
+### 4.2 Serviços de aplicação
 
-Na arquitetura-alvo, coordena o fluxo de triagem e controla a sequência
-de execução. A fatia atual ainda não integra um orquestrador.
+A implementação atual não possui um orquestrador genérico. As rotas
+delegam a operações dedicadas:
 
-Responsabilidades futuras:
+- `evaluate_ticket` aplica a triagem determinística e suas transações.
+- `interpret_description` coordena o prompt e o cliente OpenRouter.
+
+Um orquestrador mais amplo poderá ser introduzido quando houver um fluxo
+que exija coordenar vários componentes. Suas responsabilidades futuras
+incluem:
 
 - Iniciar e acompanhar uma execução.
-- Solicitar interpretação ao LLM.
 - Acionar consultas ao CMDB/KEDB.
 - Invocar o motor de regras.
 - Controlar transições de estado.
@@ -100,23 +111,37 @@ Responsabilidades futuras:
 O fluxo futuro será explícito e limitado. Não haverá planejamento aberto
 nem ciclo autônomo ilimitado do agente.
 
-### 4.3 Integração futura com LLM
+### 4.3 Interpretação local por LLM
 
-Em uma fatia futura, o LLM interpretará texto livre e retornará dados
-estruturados, como:
+`POST /tickets/{ticket_id}/interpretation` não recebe corpo. A rota lê a
+descrição já persistida, retorna `404` se o chamado não existir e então
+chama `interpret_description`. O serviço separa instruções do sistema do
+texto não confiável e invoca o cliente OpenRouter de forma síncrona.
+
+O cliente envia somente a descrição como dado do chamado. A requisição
+não envia o ID do chamado, outros campos ou dados do catálogo. O schema
+do provedor não contém o ID; a rota o inclui somente no envelope da
+resposta local. A proposta contém campos como:
 
 - Serviço candidato.
+- Ativo candidato.
+- Impacto e urgência.
 - Sintomas e palavras-chave.
-- Evidências relatadas de impacto.
-- Evidências relatadas de urgência.
+- Evidências de impacto e urgência.
 - Informações ausentes.
+- Incertezas.
 - Resumo técnico.
 
-A resposta do modelo é considerada entrada não confiável. Pydantic
-valida estrutura, tipos, limites e valores permitidos; validações de
-domínio verificam se as referências realmente existem.
+Pydantic valida a resposta estruturada com JSON Schema estrito e validação
+local do modelo. Resposta inválida retorna `502`; configuração ausente,
+timeout, indisponibilidade e rate limit retornam `503`. A chamada tem
+timeout de 30 segundos e não há retry automático.
 
-O modelo não define sozinho a prioridade final nem o time de destino.
+A resposta do modelo é entrada não confiável. Candidatos permanecem texto:
+o serviço não resolve referências de catálogo, não calcula prioridade nem
+seleciona equipe. A proposta não é persistida e não altera o chamado nem
+cria eventos de auditoria. A avaliação determinística continua exclusiva
+de `POST /tickets/{ticket_id}/triage`.
 
 ### 4.4 CMDB e KEDB
 
@@ -179,6 +204,9 @@ na mesma transação. Cada snapshot alterado incrementa a revisão. A role
 `itsm_runtime` só atualiza as colunas de estado e classificação
 autorizadas; ela pode ler os catálogos, mas não alterá-los nem atualizar
 ou excluir eventos de auditoria.
+
+A interpretação consulta a descrição por meio do repositório, mas não
+grava alterações no chamado nem eventos de auditoria.
 
 Append-only por permissões reduz alterações acidentais ou indevidas, mas
 não equivale, por si só, a imutabilidade criptográfica ou proteção
@@ -293,10 +321,9 @@ Regras:
 - `CLASSIFICADO` não é reprocessado automaticamente; uma alteração
     posterior exige operação explicitamente autorizada e deverá ter
     regra própria.
-- Falhas de interpretação/processamento devem ser distinguidas de
-    falhas de integração externa. O estado `ERRO_INTEGRACAO` deve ser
-    usado apenas para falha de integração; outros erros precisam de
-    tratamento e registro próprios.
+- Falhas de interpretação são retornadas sem alterar o estado do chamado.
+  O estado `ERRO_INTEGRACAO` permanece reservado para falhas da integração
+  ITSM externa.
 - Concorrência deve ser controlada para impedir que execuções
     simultâneas sobrescrevam decisões ou transições.
 
@@ -322,12 +349,28 @@ Regras:
    efeitos; com uma nova versão ativa e a revisão atual, reavalia o
    snapshot. Uma repetição idêntica em `EM_TRIAGEM` retorna o resultado e
    a versão persistidos, mesmo após mudança do catálogo ativo.
-8. Uma futura integração poderá extrair fatos com LLM, consultar KEDB e
-   atualizar um ITSM externo. Esses passos não fazem parte da fatia atual.
+
+A interpretação é uma operação separada do fluxo acima. O cliente local
+envia `POST /tickets/{ticket_id}/interpretation` sem corpo; a API carrega a
+descrição persistida e solicita uma proposta ao OpenRouter. A proposta
+retorna ao cliente sem alterar o chamado, sua revisão, classificação ou
+auditoria. Após revisar e resolver os fatos, o cliente pode chamar a rota
+de triagem determinística.
+
+Consultas à KEDB e atualização de um ITSM externo ainda não fazem parte
+da implementação atual.
 
 ## 8. Resiliência e idempotência
 
-### 8.1 Timeout e retry
+### 8.1 Interpretação via OpenRouter
+
+- Usar timeout de 30 segundos.
+- Não há retry automático.
+- Retornar `503` para configuração ausente, timeout, indisponibilidade ou
+  rate limit; o cliente pode solicitar nova tentativa manualmente.
+- Retornar `502` quando a resposta não puder ser interpretada ou validada.
+
+### 8.2 Timeout e retry de integração externa (futura)
 
 - Definir timeout por chamada externa.
 - Repetir somente erros transitórios.
@@ -337,10 +380,10 @@ Regras:
     autorização.
 - Registrar cada tentativa e o resultado final.
 
-Tenacity poderá implementar a política de retry, mas não substitui a
-lógica de idempotência.
+Tenacity poderá implementar a política de retry da integração externa,
+mas não substitui a lógica de idempotência.
 
-### 8.2 Chave para idempotência de integração externa (futura)
+### 8.3 Chave para idempotência de integração externa (futura)
 
 Uma futura integração ITSM poderá usar uma chave estável, por exemplo
 `ticket-1234-classification-v1`.
@@ -353,7 +396,7 @@ lógica.
 O sistema tratará também resultados desconhecidos: consultará ou
 reconciliará o estado remoto antes de iniciar uma nova operação lógica.
 
-### 8.3 Idempotência de avaliações internas
+### 8.4 Idempotência de avaliações internas
 
 Uma avaliação repetida de ticket pendente com os mesmos fatos e a mesma
 versão ativa retorna o resultado persistido sem incrementar a revisão ou
@@ -362,7 +405,7 @@ atual avalia o snapshot na nova versão. Em `EM_TRIAGEM`, somente um retry
 com fatos idênticos é aceito; ele retorna o resultado e a versão salvos,
 independentemente do catálogo ativo, sem efeitos duplicados.
 
-### 8.4 Recuperação futura de integração externa
+### 8.5 Recuperação futura de integração externa
 
 Após esgotar as tentativas de uma integração externa:
 
@@ -376,20 +419,21 @@ Após esgotar as tentativas de uma integração externa:
 
 ## 9. Segurança
 
-### 9.1 Prompt injection na futura integração LLM
+### 9.1 Prompt injection na interpretação LLM
 
-Descrições, anexos e documentos recuperados são dados não confiáveis.
+Descrições de chamados são dados não confiáveis. O serviço de
+interpretação os envia como mensagem de usuário separada das instruções
+do sistema e orienta o modelo a não seguir comandos embutidos no texto.
 
-Quando a integração LLM for introduzida, aplicar os seguintes controles:
+Aplicar os seguintes controles:
 
 - Separar instruções do sistema dos dados fornecidos pelo usuário.
 - Instruir o modelo a tratar o conteúdo recebido como informação, não
-    como comandos.
-- Limitar o conjunto de ferramentas e seus parâmetros.
+  como comandos.
+- Enviar somente a descrição como dado do chamado, sem ID ou catálogo.
 - Não conceder acesso direto ao banco ou credenciais ao LLM.
-- Validar toda operação na aplicação, independentemente da resposta do
-    modelo.
-- Exigir autorização da aplicação para ações que alterem dados.
+- Validar a saída com JSON Schema e Pydantic.
+- Não permitir que a proposta altere dados ou acione triagem.
 
 Sanitização de texto pode ser útil para validação de entrada, mas não é
 defesa suficiente contra prompt injection.
@@ -422,8 +466,11 @@ Cenários mínimos:
 | Retry em `EM_TRIAGEM` após ativar catálogo mais novo | Resultado e versão persistidos retornados |
 | Snapshots concorrentes com a mesma revisão | No máximo uma atualização; a outra recebe conflito |
 | Falha ao inserir evento de auditoria | Rollback da atualização e do evento |
+| Resposta OpenRouter completa ou parcial válida | Proposta estruturada, sem mutação ou auditoria |
+| Descrição com instruções maliciosas | Texto tratado como dado não confiável |
+| Timeout, rate limit ou indisponibilidade OpenRouter | `503`, sem retry automático |
+| Resposta OpenRouter inválida | `502`, sem mutação |
 | Timeout ou resposta perdida em integração externa futura | Retry/reconciliação com chave estável |
-| Prompt injection na futura extração LLM | Conteúdo tratado como dado não confiável |
 
 ## 11. Implantação
 
@@ -431,7 +478,8 @@ Ambiente inicial:
 
 - Um container para a aplicação FastAPI.
 - Um container para PostgreSQL.
-- LLM consumido por API externa em uma fatia futura.
+- A interpretação consome OpenRouter por API externa síncrona, com
+  `OPENROUTER_API_KEY` e `OPENROUTER_MODEL` configurados localmente.
 - Docker Compose para desenvolvimento local.
 
 A implantação futura poderá utilizar serviço gerenciado de containers,
@@ -443,9 +491,6 @@ escopo inicial.
 
 ## 12. Riscos e decisões pendentes
 
-- Definir como impacto e urgência serão extraídos de texto livre em uma
-  fatia futura.
-- Definir provedor e modelo LLM.
 - Definir autenticação e autorização caso a API venha a ser exposta além
   do loopback.
 - Definir retenção e acesso aos eventos de auditoria.

@@ -200,14 +200,16 @@ T4 → T7
 
 **Done when**:
 
-- [ ] The architecture distinguishes the proposal endpoint, provider client, deterministic triage endpoint, and their data boundaries.
-- [ ] It records no automatic retries, the timeout, output validation, and no ticket mutation by interpretation.
-- [ ] A documentation contract test verifies these boundaries.
-- [ ] Gate check passes: `pytest -v`.
+- [x] The architecture distinguishes the proposal endpoint, provider client, deterministic triage endpoint, and their data boundaries.
+- [x] It records no automatic retries, the timeout, output validation, and no ticket mutation by interpretation.
+- [x] A documentation contract test verifies these boundaries.
+- [x] Gate check passes: `pytest -v`.
 
 **Tests**: unit
 **Gate**: build
 **Commit**: `docs(architecture): record LLM interpretation boundary`
+**Status**: Complete
+**Gate result**: `pytest -v` - 78 passed, 1 pre-existing Starlette deprecation warning.
 
 ---
 
@@ -273,7 +275,7 @@ Proof: run tests | `tests/integration/test_app_runtime.py::test_server_binds_to_
 **C13** - README documents the local proposal-first flow and required configuration (LLM-01, LLM-06, LLM-07, LLM-10)
 Proof: run tests | `tests/unit/test_interpretation_docs.py::test_readme_documents_local_proposal_flow_and_configuration PASSED`
 
-**C14** - Architecture docs preserve the separation between LLM proposals and deterministic decisions (LLM-04, LLM-06, LLM-11)
+**C14** - Architecture docs preserve the separation between LLM proposals and deterministic decisions, including provider boundaries, timeout, validation, and no retry (LLM-04, LLM-06, LLM-08, LLM-11)
 Proof: run tests | `tests/unit/test_interpretation_docs.py::test_architecture_documents_provider_and_deterministic_boundaries PASSED`
 
 **C15** - The centralized project progress tracker records this feature as in progress with evidence links (LLM-01)
