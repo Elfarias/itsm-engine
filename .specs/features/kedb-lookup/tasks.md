@@ -124,14 +124,16 @@ T7 → T8
 **Requirement**: KEDB-01, KEDB-06
 
 **Done when**:
-- [ ] Script DDL cria a tabela `kedb_entries` com índice no campo `service_candidate`.
-- [ ] Insere registros sintéticos demonstrativos com soluções de contorno e sintomas indexados.
-- [ ] Teste de setup do banco de dados aplica a migração com sucesso.
-- [ ] Gate passa: `pytest -v tests/integration/test_database_setup.py`.
+- [x] Script DDL cria a tabela `kedb_entries` com índice no campo `service_candidate`.
+- [x] Insere registros sintéticos demonstrativos com soluções de contorno e sintomas indexados.
+- [x] Teste de setup do banco de dados aplica a migração com sucesso.
+- [x] Gate passa: `pytest -v tests/integration/test_database_setup.py`.
 
 **Tests**: integration
 **Gate**: full
 **Commit**: `feat(db): add KEDB table and demonstration seed`
+**Status**: Complete
+**Gate result**: `pytest -v tests/integration/test_database_setup.py` - 1 passed.
 
 #### T4: Implementar repositorio e consultas deterministicas a KEDB
 
