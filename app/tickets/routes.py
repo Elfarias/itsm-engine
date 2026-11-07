@@ -9,6 +9,7 @@ from app.tickets.schemas import TicketCreate, TicketResponse
 from app.triage.api_schemas import TicketTriageRequest
 from app.triage.interpretation import interpret_description
 from app.triage.interpretation_schemas import TicketInterpretationResponse
+from app.triage.kedb_service import lookup_kedb
 from app.triage.openrouter_client import (
     OpenRouterConfigurationError,
     OpenRouterInvalidResponse,
@@ -84,8 +85,15 @@ def post_ticket_interpretation(ticket_id: UUID) -> TicketInterpretationResponse:
             detail="Ticket interpretation returned an invalid provider response",
         ) from error
 
+    kedb_result = lookup_kedb(
+        os.environ["DATABASE_URL"],
+        proposal.service_candidate,
+        proposal.symptoms,
+    )
+
     return TicketInterpretationResponse(
         ticket_id=ticket.id,
+        kedb=kedb_result,
         **proposal.model_dump(),
     )
 

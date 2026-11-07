@@ -186,14 +186,16 @@ T7 → T8
 **Requirement**: KEDB-01, KEDB-07, KEDB-08, KEDB-09, KEDB-10, KEDB-11
 
 **Done when**:
-- [ ] Rota chama `lookup_kedb` após a extração pelo LLM e inclui o resultado na resposta `TicketInterpretationResponse`.
-- [ ] Chamado, revisão e trilha de auditoria permanecem inalterados.
-- [ ] Testes de integração validam a resposta enriquecida, falha parcial de banco e persistência intacta.
-- [ ] Gate passa: `pytest -v`.
+- [x] Rota chama `lookup_kedb` após a extração pelo LLM e inclui o resultado na resposta `TicketInterpretationResponse`.
+- [x] Chamado, revisão e trilha de auditoria permanecem inalterados.
+- [x] Testes de integração validam a resposta enriquecida, falha parcial de banco e persistência intacta.
+- [x] Gate passa: `pytest -v`.
 
 **Tests**: integration
 **Gate**: full
 **Commit**: `feat(api): enrich ticket interpretation with KEDB guidance`
+**Status**: Complete
+**Gate result**: `pytest -v` - 9 passed in `test_ticket_interpretation_api.py`.
 
 ---
 

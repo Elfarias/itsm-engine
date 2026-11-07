@@ -135,6 +135,10 @@ def test_interpretation_returns_proposal_for_existing_ticket(
     assert response.json() == {
         **proposal.model_dump(mode="json"),
         "ticket_id": str(ticket_id),
+        "kedb": {
+            "status": "AVAILABLE",
+            "matches": [],
+        },
     }
     assert received_descriptions == [description]
     assert _ticket_snapshot(owner_connection, ticket_id) == ticket_before
@@ -254,3 +258,113 @@ def test_interpretation_does_not_log_sensitive_content(
         sensitive_value not in caplog.text
         for sensitive_value in (description, api_key, prompt, provider_response)
     )
+
+
+def test_interpretation_queries_kedb_with_extracted_facts(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    created = api_client.post("/tickets", json={"description": "VPN timeout ao conectar"})
+    assert created.status_code == 201
+    ticket_id = UUID(created.json()["id"])
+
+    proposal = InterpretationProposal.model_validate(
+        {
+            "service_candidate": "VPN Corporativa",
+            "asset_candidate": None,
+            "impact": "ALTO",
+            "urgency": "ALTA",
+            "symptoms": ["timeout vpn", "falha de conexao"],
+            "impact_evidence": ["impacto geral"],
+            "urgency_evidence": ["bloqueante"],
+            "missing_information": [],
+            "uncertainties": [],
+            "technical_summary": "Problema no gateway VPN.",
+        }
+    )
+
+    monkeypatch.setattr(
+        "app.tickets.routes.interpret_description",
+        lambda _: proposal,
+    )
+
+    response = api_client.post(f"/tickets/{ticket_id}/interpretation")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["kedb"]["status"] == "AVAILABLE"
+    assert len(data["kedb"]["matches"]) >= 1
+    first_match = data["kedb"]["matches"][0]
+    assert first_match["error_id"] == "ERR-001"
+    assert first_match["title"] == "Falha de autenticação no gateway VPN corporativo"
+    assert any("service" in r for r in first_match["match_reasons"])
+    assert "gateway secundário" in first_match["workaround"]
+
+
+def test_kedb_database_failure_returns_partial_success(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    created = api_client.post("/tickets", json={"description": "Descricao qualquer"})
+    assert created.status_code == 201
+    ticket_id = UUID(created.json()["id"])
+    proposal = _proposal()
+
+    monkeypatch.setattr(
+        "app.tickets.routes.interpret_description",
+        lambda _: proposal,
+    )
+
+    from app.triage.kedb_schemas import KedbLookupResult, KedbLookupStatus
+    monkeypatch.setattr(
+        "app.tickets.routes.lookup_kedb",
+        lambda *args, **kwargs: KedbLookupResult(
+            status=KedbLookupStatus.UNAVAILABLE,
+            matches=[],
+        ),
+    )
+
+    response = api_client.post(f"/tickets/{ticket_id}/interpretation")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["service_candidate"] == proposal.service_candidate
+    assert data["kedb"]["status"] == "UNAVAILABLE"
+    assert data["kedb"]["matches"] == []
+
+
+def test_kedb_lookup_leaves_ticket_and_audit_unchanged(
+    api_client: TestClient,
+    migrated_database_roles: tuple[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    owner_connection, _ = migrated_database_roles
+    ticket_id = _create_classified_ticket(api_client, "Ticket para teste de imutabilidade")
+    ticket_before = _ticket_snapshot(owner_connection, ticket_id)
+    audit_before = _audit_snapshot(owner_connection, ticket_id)
+
+    proposal = InterpretationProposal.model_validate(
+        {
+            "service_candidate": "VPN Corporativa",
+            "asset_candidate": None,
+            "impact": "MEDIO",
+            "urgency": "MEDIA",
+            "symptoms": ["timeout vpn"],
+            "impact_evidence": ["evidencia"],
+            "urgency_evidence": ["evidencia"],
+            "missing_information": [],
+            "uncertainties": [],
+            "technical_summary": "Resumo",
+        }
+    )
+    monkeypatch.setattr(
+        "app.tickets.routes.interpret_description",
+        lambda _: proposal,
+    )
+
+    response = api_client.post(f"/tickets/{ticket_id}/interpretation")
+    assert response.status_code == 200
+
+    assert _ticket_snapshot(owner_connection, ticket_id) == ticket_before
+    assert _audit_snapshot(owner_connection, ticket_id) == audit_before
+
