@@ -167,9 +167,11 @@ $proposal
 
 A API carrega a descrição já persistida e envia somente esse texto como dado
 do chamado ao OpenRouter. O provedor não recebe o ID, outros campos do
-chamado ou dados do catálogo. A resposta contém candidatos textuais de
+chamado, dados do catálogo ou da KEDB. A resposta contém candidatos textuais de
 serviço e ativo, impacto, urgência, sintomas, evidências, informações
-ausentes, incertezas e resumo técnico. Campos não determinados podem ficar
+ausentes, incertezas, resumo técnico e o bloco consultivo `kedb` com status e
+correspondências determinísticas da base de erros conhecidos (com instruções de
+contorno para avaliação do operador). Campos não determinados podem ficar
 nulos.
 
 A proposta serve para revisão; ela não é persistida, não muda o estado,

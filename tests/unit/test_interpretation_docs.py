@@ -29,6 +29,8 @@ def test_readme_documents_local_proposal_flow_and_configuration() -> None:
     assert "`503`" in section
     assert "`502`" in section
     assert "`127.0.0.1`" in section
+    assert "KEDB" in section
+    assert "kedb" in section
 
 
 def test_architecture_documents_provider_and_deterministic_boundaries() -> None:
@@ -46,5 +48,7 @@ def test_architecture_documents_provider_and_deterministic_boundaries() -> None:
     assert "502" in architecture
     assert "503" in architecture
     assert "não altera o chamado nem cria eventos de auditoria" in architecture
+    assert "kedb_entries" in architecture
+    assert "UNAVAILABLE" in architecture
     assert "O LLM é uma integração futura" not in architecture
     assert "Em uma fatia futura, o LLM interpretará texto livre" not in architecture

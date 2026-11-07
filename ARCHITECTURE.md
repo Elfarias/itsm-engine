@@ -149,13 +149,16 @@ de `POST /tickets/{ticket_id}/triage`.
 responsáveis.
 
 **KEDB:** mantém erros conhecidos, sintomas, serviços relacionados e
-procedimentos de referência.
+procedimentos de contorno (*workaround*).
 
 Nesta fatia, o PostgreSQL mantém um catálogo sintético, vendor-neutral e
-versionado de serviços, ativos, equipes e mapeamentos serviço-equipe. A
-versão ativa é usada em novas avaliações. A KEDB não faz parte deste
-escopo; pesquisa textual e PGVector permanecem fora da implementação
-atual.
+versionado de serviços, ativos, equipes e mapeamentos serviço-equipe, além de
+uma tabela local de erros conhecidos (`kedb_entries`) com registros sintéticos.
+A consulta à KEDB é determinística e realizada durante a interpretação do
+chamado, priorizando o serviço candidato extraído com contingência por sintomas,
+sob normalização estrita de texto (caixa baixa, remoção de acentos e espaços).
+A KEDB é exclusivamente consultiva e local; nenhum dado da KEDB é enviado ao
+OpenRouter, e a consulta não altera o chamado nem gera eventos de auditoria.
 
 ### 4.5 Motor de regras
 
@@ -357,8 +360,10 @@ retorna ao cliente sem alterar o chamado, sua revisão, classificação ou
 auditoria. Após revisar e resolver os fatos, o cliente pode chamar a rota
 de triagem determinística.
 
-Consultas à KEDB e atualização de um ITSM externo ainda não fazem parte
-da implementação atual.
+A consulta à KEDB enriquece a resposta da interpretação com orientações
+locais e determinísticas, preservando a proposta caso o banco esteja
+indisponível (sucesso parcial com status `UNAVAILABLE`). Atualização de um
+ITSM externo ainda não faz parte da implementação atual.
 
 ## 8. Resiliência e idempotência
 

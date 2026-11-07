@@ -209,13 +209,15 @@ T7 → T8
 **Requirement**: KEDB-06, KEDB-09, KEDB-10
 
 **Done when**:
-- [ ] Documentação reflete a tabela KEDB, fluxo de enriquecimento e fronteiras de isolamento com o OpenRouter.
-- [ ] Testes de documentação passam.
-- [ ] Gate passa: `pytest -v tests/unit/test_interpretation_docs.py`.
+- [x] Documentação reflete a tabela KEDB, fluxo de enriquecimento e fronteiras de isolamento com o OpenRouter.
+- [x] Testes de documentação passam.
+- [x] Gate passa: `pytest -v tests/unit/test_interpretation_docs.py`.
 
 **Tests**: unit
 **Gate**: quick
 **Commit**: `docs(architecture): record KEDB lookup flow and data boundaries`
+**Status**: Complete
+**Gate result**: `pytest -v tests/unit/test_interpretation_docs.py` - 2 passed.
 
 #### T8: Atualizar rastreador centralizado de entregas no PROJECT.md
 
