@@ -59,3 +59,4 @@ def test_search_returns_empty_when_no_match(
 
         matches_empty = search_kedb(conn, None, [])
         assert matches_empty == []
+

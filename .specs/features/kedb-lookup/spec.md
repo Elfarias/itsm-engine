@@ -78,17 +78,17 @@ A rota atual de interpretação extrai fatos candidatos da descrição de incide
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| KEDB-01 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
-| KEDB-02 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
-| KEDB-03 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
-| KEDB-04 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
-| KEDB-05 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
-| KEDB-06 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
-| KEDB-07 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
-| KEDB-08 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
-| KEDB-09 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
-| KEDB-10 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
-| KEDB-11 | P1: Consultar KEDB e enriquecer proposta de interpretação | Specify | Pending |
+| KEDB-01 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
+| KEDB-02 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
+| KEDB-03 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
+| KEDB-04 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
+| KEDB-05 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
+| KEDB-06 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
+| KEDB-07 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
+| KEDB-08 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
+| KEDB-09 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
+| KEDB-10 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
+| KEDB-11 | P1: Consultar KEDB e enriquecer proposta de interpretação | Tasks | Complete |
 
 **Coverage:** 11 total, 11 mapped to the story, 0 unmapped.
 

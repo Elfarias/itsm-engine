@@ -50,3 +50,4 @@ INSERT INTO kedb_entries (error_id, title, summary, service_candidate, symptoms,
 
 REVOKE ALL ON kedb_entries FROM PUBLIC, itsm_runtime;
 GRANT SELECT ON kedb_entries TO itsm_runtime;
+

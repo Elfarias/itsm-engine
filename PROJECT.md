@@ -2,7 +2,7 @@
 
 **Nome do projeto:** ITSM Agent
 **Versão do documento:** 1.0
-**Status:** Acompanhamento centralizado; consultas à KEDB em implantação
+**Status:** Acompanhamento centralizado; consultas à KEDB concluídas e verificadas
 **Idioma:** Português (Brasil)
 
 ## 1. Visão geral

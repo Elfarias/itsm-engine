@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/kedb-lookup/design.md`
-**Status**: Approved
+**Status**: Complete
 **Approved**: 2026-11-06 - user: "sim"
 **Build**: none - no separate build, type-check, or lint command is configured; `pytest -v` is the project validation command.
 **Run tests**: `pytest -v`
@@ -283,7 +283,7 @@ Proof: run tests | `tests/integration/test_app_runtime.py::test_server_binds_to_
 
 **Settled during Specify**: Consulta determinística à KEDB local no PostgreSQL, prioridade serviço sobre sintomas, normalização estrita, sucesso parcial em caso de falha de banco e orientações puramente consultivas.
 **Settled during Design**: Migração com tabela `kedb_entries`, ordenação por `error_id ASC`, função de normalização com `unicodedata` e orquestração síncrona na rota FastAPI.
-**Dispatched**: None.
+**Dispatched**: Verifier returned PASS at HEAD c891bdb; no screens review (no capture-bound criteria).
 **Walked**: Not applicable (API local sem interface gráfica).
 
 ## Phase Execution Map

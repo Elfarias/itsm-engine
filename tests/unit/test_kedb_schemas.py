@@ -79,3 +79,4 @@ def test_ticket_interpretation_response_with_kedb() -> None:
     assert response.kedb is not None
     assert response.kedb.status == KedbLookupStatus.AVAILABLE
     assert response.kedb.matches == []
+

@@ -25,3 +25,4 @@ def lookup_kedb(
             status=KedbLookupStatus.UNAVAILABLE,
             matches=[],
         )
+

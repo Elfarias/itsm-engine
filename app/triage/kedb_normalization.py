@@ -12,3 +12,4 @@ def normalize_text(text: str | None) -> str:
     # Lowercase and normalize whitespace sequences to a single space
     cleaned = " ".join(without_accents.lower().split())
     return cleaned.strip()
+

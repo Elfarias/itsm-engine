@@ -13,3 +13,4 @@ def test_normalization_handles_none_and_empty() -> None:
     assert normalize_text(None) == ""
     assert normalize_text("") == ""
     assert normalize_text("    ") == ""
+

@@ -56,3 +56,4 @@ def test_service_handles_database_error_as_unavailable() -> None:
 
         assert result.status == KedbLookupStatus.UNAVAILABLE
         assert result.matches == []
+

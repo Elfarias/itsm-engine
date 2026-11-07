@@ -22,3 +22,4 @@ class KedbLookupResult(BaseModel):
 
     status: KedbLookupStatus
     matches: list[KedbMatch]
+
