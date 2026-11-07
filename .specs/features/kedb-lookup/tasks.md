@@ -143,15 +143,17 @@ T7 → T8
 **Requirement**: KEDB-01, KEDB-03, KEDB-04, KEDB-05
 
 **Done when**:
-- [ ] Função `search_kedb` busca por serviço candidato normalizado e, se não encontrar, busca pelos sintomas normalizados.
-- [ ] Registros são ordenados de forma ascendente por `error_id`.
-- [ ] Motivo de casamento (`match_reasons`) é preenchido de forma descritiva.
-- [ ] Testes de integração validam busca por serviço, fallback por sintomas e termos sem correspondência.
-- [ ] Gate passa: `pytest -v tests/integration`.
+- [x] Função `search_kedb` busca por serviço candidato normalizado e, se não encontrar, busca pelos sintomas normalizados.
+- [x] Registros são ordenados de forma ascendente por `error_id`.
+- [x] Motivo de casamento (`match_reasons`) é preenchido de forma descritiva.
+- [x] Testes de integração validam busca por serviço, fallback por sintomas e termos sem correspondência.
+- [x] Gate passa: `pytest -v tests/integration`.
 
 **Tests**: integration
 **Gate**: full
 **Commit**: `feat(triage): implement KEDB repository query and fallback`
+**Status**: Complete
+**Gate result**: `pytest -v tests/integration/test_kedb_repository.py` - 4 passed.
 
 ---
 
