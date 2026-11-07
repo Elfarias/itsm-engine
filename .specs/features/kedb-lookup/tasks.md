@@ -102,13 +102,15 @@ T7 → T8
 **Requirement**: KEDB-02
 
 **Done when**:
-- [ ] Função `normalize_text` converte para minúsculas, remove acentos e remove espaços em branco extras.
-- [ ] Testes unitários cobrem strings com acentuação, caixas misturadas, espaços duplicados e valores nulos/vazios.
-- [ ] Gate passa: `pytest -v tests/unit`.
+- [x] Função `normalize_text` converte para minúsculas, remove acentos e remove espaços em branco extras.
+- [x] Testes unitários cobrem strings com acentuação, caixas misturadas, espaços duplicados e valores nulos/vazios.
+- [x] Gate passa: `pytest -v tests/unit`.
 
 **Tests**: unit
 **Gate**: quick
 **Commit**: `feat(triage): add text normalization for KEDB matching`
+**Status**: Complete
+**Gate result**: `pytest -v tests/unit` - 35 passed.
 
 ---
 
