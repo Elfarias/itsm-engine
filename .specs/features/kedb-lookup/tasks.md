@@ -167,14 +167,16 @@ T7 → T8
 **Requirement**: KEDB-07, KEDB-08
 
 **Done when**:
-- [ ] Função `lookup_kedb` executa a consulta no PostgreSQL e encapsula o resultado em `KedbLookupResult`.
-- [ ] Em caso de falha de conexão ou erro no banco, captura a exceção e retorna status `UNAVAILABLE` com lista vazia (sucesso parcial).
-- [ ] Testes unitários cobrem o fluxo de sucesso e o fallback resiliente sob erro simulado de banco.
-- [ ] Gate passa: `pytest -v tests/unit`.
+- [x] Função `lookup_kedb` executa a consulta no PostgreSQL e encapsula o resultado em `KedbLookupResult`.
+- [x] Em caso de falha de conexão ou erro no banco, captura a exceção e retorna status `UNAVAILABLE` com lista vazia (sucesso parcial).
+- [x] Testes unitários cobrem o fluxo de sucesso e o fallback resiliente sob erro simulado de banco.
+- [x] Gate passa: `pytest -v tests/unit`.
 
 **Tests**: unit
 **Gate**: quick
-**Commit**: `feat(triage): implement KEDB lookup service with partial failure resilience`
+**Commit**: `feat(triage): implement KEDB service with partial failure resilience`
+**Status**: Complete
+**Gate result**: `pytest -v tests/unit` - 38 passed.
 
 #### T6: Integrar consulta a KEDB na rota local de interpretacao de chamados
 
