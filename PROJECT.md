@@ -2,7 +2,7 @@
 
 **Nome do projeto:** ITSM Agent
 **Versão do documento:** 1.0
-**Status:** Acompanhamento centralizado; interpretação por LLM concluída e verificada
+**Status:** Acompanhamento centralizado; consultas à KEDB em implantação
 **Idioma:** Português (Brasil)
 
 ## 1. Visão geral
@@ -15,7 +15,7 @@ local que propõe uma interpretação da descrição salva do chamado. A
 proposta não altera o chamado; a triagem determinística permanece uma
 operação explícita e separada.
 
-KEDB e integração ITSM externa permanecem no roadmap. A API local não
+Integração ITSM externa permanece no roadmap. A API local não
 requer autenticação e só fica disponível no servidor ligado a
 `127.0.0.1`; acesso por rede pública ou remota está fora do escopo.
 
@@ -55,8 +55,9 @@ IA.
 | Triagem determinística | Concluída e verificada | Catálogos versionados, regras de prioridade e roteamento, controle de revisão, estados e auditoria transacional. | [Spec](.specs/features/ticket-triage/spec.md) | [Tarefas](.specs/features/ticket-triage/tasks.md) | [Verificação](.specs/features/ticket-triage/verification.md) |
 | API local de triagem determinística | Concluída e verificada | Avaliar chamados existentes por fatos estruturados na rota local. | [Spec](.specs/features/ticket-triage-api/spec.md) | [Tarefas](.specs/features/ticket-triage-api/tasks.md) | [Verificação](.specs/features/ticket-triage-api/verification.md) |
 | Interpretação de descrições em texto livre por LLM | Concluída e verificada | OpenRouter propõe fatos estruturados a partir da descrição salva, sem alterar o chamado. | [Spec](.specs/features/llm-ticket-interpretation/spec.md) | [Tarefas](.specs/features/llm-ticket-interpretation/tasks.md) | [Verificação](.specs/features/llm-ticket-interpretation/verification.md) |
+| Consultas à KEDB | Em andamento; aguardando verificação independente | Base local de erros conhecidos com matching determinístico e orientações de contorno para o operador. | [Spec](.specs/features/kedb-lookup/spec.md) | [Tarefas](.specs/features/kedb-lookup/tasks.md) | [Verificação](.specs/features/kedb-lookup/verification.md) |
 
-**Em andamento:** nenhuma entrega registrada.
+**Em andamento:** consultas à KEDB, aguardando verificação independente.
 
 **Regra de atualização:** ao concluir cada entrega ou alterar seu status, atualize esta tabela e o backlog no `PROJECT.md` no mesmo commit da entrega.
 
@@ -64,7 +65,6 @@ IA.
 
 | Frente futura | Status |
 | --- | --- |
-| Consultas à KEDB | Planejada, sem prioridade |
 | Acesso remoto à API com autenticação e autorização | Planejada, sem prioridade |
 | Orquestrador e canal remoto de complementação de chamados | Planejada, sem prioridade |
 | Integração ITSM externa com retry, timeout e idempotência remota | Planejada, sem prioridade |

@@ -9,6 +9,7 @@ VERIFIED_FEATURES = {
     "ticket-triage-api": "API local de triagem determinística",
     "llm-ticket-interpretation": "Interpretação de descrições em texto livre por LLM",
 }
+IN_PROGRESS_FEATURE = ("kedb-lookup", "Consultas à KEDB")
 
 
 def _dashboard_rows(project_text: str) -> list[str]:
@@ -47,9 +48,9 @@ def test_dashboard_lists_unprioritized_roadmap() -> None:
         if row.startswith("|") and "Planejada, sem prioridade" in row
     ]
 
-    assert len(planned_rows) == 7
+    assert len(planned_rows) == 6
     assert not any("Interpretação" in row for row in planned_rows)
-    assert any("KEDB" in row for row in planned_rows)
+    assert not any("KEDB" in row for row in planned_rows)
     assert any("autenticação e autorização" in row for row in planned_rows)
     assert any("complementação de chamados" in row for row in planned_rows)
     assert any("Integração ITSM externa" in row for row in planned_rows)
@@ -74,7 +75,6 @@ def test_dashboard_lists_verified_interpretation_delivery() -> None:
     assert "Concluída e verificada" in row
     assert f".specs/features/{feature}/tasks.md" in row
     assert f".specs/features/{feature}/verification.md" in row
-    assert "**Em andamento:** nenhuma entrega registrada." in project_text
     feature_root = PROJECT_ROOT / ".specs" / "features" / feature
     assert (feature_root / "spec.md").is_file()
     assert (feature_root / "tasks.md").is_file()
@@ -82,6 +82,32 @@ def test_dashboard_lists_verified_interpretation_delivery() -> None:
         encoding="utf-8"
     )
     assert "**Verdict**: PASS" in verification_text
+
+
+def test_dashboard_lists_in_progress_kedb_delivery() -> None:
+    project_text = PROJECT_DOCUMENT.read_text(encoding="utf-8")
+    feature, name = IN_PROGRESS_FEATURE
+    feature_rows = [
+        row
+        for row in _dashboard_rows(project_text)
+        if f".specs/features/{feature}/spec.md" in row
+    ]
+
+    assert len(feature_rows) == 1
+    row = feature_rows[0]
+    assert name in row
+    assert "Em andamento" in row
+    assert "aguardando verificação independente" in row
+    assert f".specs/features/{feature}/tasks.md" in row
+    assert f".specs/features/{feature}/verification.md" in row
+    active_status = next(
+        line
+        for line in project_text.splitlines()
+        if line.startswith("**Em andamento:**")
+    )
+    assert name.casefold() in active_status.casefold()
+    assert (PROJECT_ROOT / ".specs" / "features" / feature / "spec.md").is_file()
+    assert (PROJECT_ROOT / ".specs" / "features" / feature / "tasks.md").is_file()
 
 
 def test_dashboard_requires_same_commit_updates() -> None:

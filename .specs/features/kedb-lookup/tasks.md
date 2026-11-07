@@ -227,14 +227,16 @@ T7 → T8
 **Requirement**: KEDB-01
 
 **Done when**:
-- [ ] Entrega da KEDB é registrada na tabela de fatias implementadas com links para Spec, Tasks e Verificação.
-- [ ] Tabela de backlog planejado é ajustada.
-- [ ] Testes de progresso do projeto passam: `pytest -v tests/unit/test_project_progress.py`.
-- [ ] Gate passa: `pytest -v`.
+- [x] Entrega da KEDB é registrada na tabela de fatias implementadas com links para Spec, Tasks e Verificação.
+- [x] Tabela de backlog planejado é ajustada.
+- [x] Testes de progresso do projeto passam: `pytest -v tests/unit/test_project_progress.py`.
+- [x] Gate passa: `pytest -v`.
 
 **Tests**: unit
 **Gate**: full
 **Commit**: `docs(progress): track KEDB lookup delivery`
+**Status**: Complete
+**Gate result**: `pytest -v tests/unit/test_project_progress.py` - 6 passed.
 
 ---
 
