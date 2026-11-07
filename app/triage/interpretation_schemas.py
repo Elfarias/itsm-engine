@@ -2,6 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from app.triage.kedb_schemas import KedbLookupResult
 from app.triage.schemas import Impact, Urgency
 
 
@@ -22,3 +23,4 @@ class InterpretationProposal(BaseModel):
 
 class TicketInterpretationResponse(InterpretationProposal):
     ticket_id: UUID
+    kedb: KedbLookupResult | None = None
