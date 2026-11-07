@@ -2,3 +2,8 @@
 .venv/
 __pycache__/
 .pytest_cache/
+.vscode/
+*.lnk
+.claude/skills/the-judge/
+.cursor/skills/the-judge/
+.windsurf/skills/the-judge/
